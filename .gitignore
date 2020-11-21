@@ -1,1 +1,5 @@
 venv
+.env
+memo.md
+__pycache__/
+.vscode/
