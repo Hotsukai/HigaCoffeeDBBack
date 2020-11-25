@@ -45,9 +45,27 @@ def create_user():
         return flask.jsonify({"message": "ユーザー名は必須です"}), 400
     if not password:
         return flask.jsonify({"message": "パスワードは必須です"}), 400
-    users = db.session.query(User).\
-        filter(User.name == username).\
-        all()
+    users = User.query.filter_by(name = username).all()
+    if len(users)!=0:
+        return flask.jsonify({"message": "ユーザー名が利用されています。"}), 400
+
+    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+    user = User(name=username, encrypted_password=hashed_password)
+    db.session.add(user)
+    db.session.commit()
+    return flask.jsonify({"message": "ユーザー("+username+")を作成しました。"})
+
+@app.route('/auth/login/', methods=['POST'])
+def login():
+    form_data = flask.request.json
+    username = form_data['username']
+    password = form_data['password']
+    # TODO:有効な文字列か確認。
+    if not username:
+        return flask.jsonify({"message": "ユーザー名は必須です"}), 400
+    if not password:
+        return flask.jsonify({"message": "パスワードは必須です"}), 400
+    users = User.query.filter_by(name = username).all()
     if len(users)!=0:
         return flask.jsonify({"message": "ユーザー名が利用されています。"}), 400
 

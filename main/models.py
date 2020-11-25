@@ -11,10 +11,42 @@ class Entry(db.Model):  # 実験用
     created_at = db.Column(db.DateTime(timezone=True), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey(
         "users.id"),  nullable=False)  # usersテーブルのidがForeignKey
- 
 
     def __repr__(self):
         return "Entry(id={} title={!r})".format(self.id, self.title)
+
+
+class Coffee(db.Model):
+    __tablename__ = "coffees"
+    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    powder_amount = db.Column(db.Integer)
+    extraction_time = db.Column(db.Integer, nullable=False)
+    extraction_method_id = db.Column(db.Integer, db.ForeignKey(
+        "extraction_methods.id"),  nullable=False)
+    mesh_id = db.Column(db.Integer, db.ForeignKey(
+        "extraction_methods.id"))
+    water_amount = db.Column(db.Integer)
+    water_temperature = db.Column(db.Integer)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    updated_at = db.Column(db.DateTime, nullable=False,
+                           default=db.func.now(), onupdate=db.func.now())
+    bean_id = db.Column(db.Integer, db.ForeignKey(
+        "beans.id"),  nullable=False)
+    mesh_id = db.Column(db.Integer, db.ForeignKey(
+        "mesh.id"))
+    dripper_id = db.Column(db.Integer, db.ForeignKey(
+        "users.id"),  nullable=False)
+    drinker_id = db.Column(db.Integer, db.ForeignKey(
+        "users.id"),  nullable=False)
+    dripper = db.relationship(
+        "User", primaryjoin="Coffee.dripper_id==User.id")
+    drinker = db.relationship(
+        "User", primaryjoin="Coffee.drinker_id==User.id")
+    review_id = db.Column(db.Integer, db.ForeignKey(
+        "reviews.id"))
+
+    def __repr__(self):
+        return "Coffee(id={})".format(self.id)
 
 
 class User(db.Model, UserMixin):
@@ -27,8 +59,6 @@ class User(db.Model, UserMixin):
                            default=db.func.now(), onupdate=db.func.now())
     entrys = db.relationship("Entry", backref="user")
     reviews = db.relationship("Review", backref="user")
-    dripped_coffees = db.relationship("Coffee", backref="user")
-    dripping_coffees = db.relationship("Coffee", backref="user")
 
     def __repr__(self):
         return "User(id={}, username={})".format(self.id, self.username)
@@ -46,36 +76,11 @@ class Review(db.Model):
     updated_at = db.Column(db.DateTime, nullable=False,
                            default=db.func.now(), onupdate=db.func.now())
     coffee = db.relationship("Coffee", backref="review")
+    reviewer_id = db.Column(db.Integer, db.ForeignKey(
+        "users.id"),  nullable=False)
 
     def __repr__(self):
         return "Review(id={}, feeling{})".format(self.id, self.feeling)
-
-
-class Coffee(db.Model):
-    __tablename__ = "coffees"
-    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    powder_amount = db.Column(db.Integer)
-    extraction_time = db.Column(db.Integer, nullable=False)
-    extraction_method_id = db.Column(db.Integer, db.ForeignKey(
-        "extraction_methods.id"),  nullable=False)
-    water_amount = db.Column(db.Integer)
-    water_temperature = db.Column(db.Integer)
-    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
-    updated_at = db.Column(db.DateTime, nullable=False,
-                           default=db.func.now(), onupdate=db.func.now())
-    bean_id = db.Column(db.Integer, db.ForeignKey(
-        "beans.id"),  nullable=False)
-    mesh_id = db.Column(db.Integer, db.ForeignKey(
-        "mesh.id"))
-    dripper_id = db.Column(db.Integer, db.ForeignKey(
-        "users.id"),  nullable=False)
-    drinker_id = db.Column(db.Integer, db.ForeignKey(
-        "users.id"),  nullable=False)
-    review_id = db.Column(db.Integer, db.ForeignKey(
-        "coffees.id"))
-
-    def __repr__(self):
-        return "Coffee(id={})".format(self.id)
 
 
 class Bean(db.Model):
@@ -104,8 +109,7 @@ class Mesh(db.Model):
     __tablename__ = "mesh"
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     name = db.Column(db.Text, nullable=False, unique=True)
-    coffees = db.relationship("Coffee", backref="extraction_method")
-
+    coffees = db.relationship("Coffee", backref="mesh")
 
 
 def init():
