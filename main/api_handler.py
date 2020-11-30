@@ -1,13 +1,16 @@
 from logging import log
 import flask
-from main import app, db, bcrypt,login_manager
+from main import app, db, bcrypt, login_manager
 from main.models import Coffee, User, Review, BEAN, EXTRACTION_METHOD, MESH
 from main.utils import *
-from flask_login import login_user, logout_user, login_required,current_user
+from flask_login import login_user, logout_user, login_required, current_user
+# TODO: def checkPassフレーズ
+
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.filter_by(id=user_id).first()
+
 
 @app.route('/')
 def helloworld():
@@ -42,6 +45,7 @@ def create_user():
 # user index TODO:
 # user show
 # user update
+# TODO:エラーハンドリング
 
 
 @app.route('/auth/login/', methods=['POST'])
@@ -85,3 +89,21 @@ def create_coffee():
     db.session.add(new_coffee)
     db.session.commit()
     return flask.jsonify({"message": "コーヒーを作成しました。"})
+# TODO: queries
+
+@app.route("/coffees/", methods=['GET'])
+def get_coffees():
+    sql_query = []
+    if flask.request.args.get('dripper_id') is not None:
+        sql_query.append(Coffee.dripper_id ==
+                         flask.request.args.get('dripper_id'))
+    if flask.request.args.get('drinker_id') is not None:
+        sql_query.append(Coffee.dripper_id ==
+                         flask.request.args.get('drinker_id'))
+    if flask.request.args.get('bean_id') is not None:
+        sql_query.append(Coffee.bean_id == flask.request.args.get('bean_id'))
+
+    coffees = Coffee.query.filter(db.and_(*sql_query)).all()
+    print("coffees : ",coffees)
+    
+    return flask.jsonify(convert_coffees_to_json(coffees))
