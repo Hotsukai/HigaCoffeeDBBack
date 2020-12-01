@@ -81,7 +81,7 @@ def login():
         # ログイン成功
         login_user(user)
         print("ログイン成功")
-        return flask.jsonify({"result": True, "message": "ユーザー("+username+")のログインに成功しました。"})
+        return flask.jsonify({"result": True, "message": "ユーザー("+username+")のログインに成功しました。","data":convert_user_to_json(user)})
     else:
         print("ログイン失敗")
         return flask.jsonify({"result": False, "message": "ユーザー("+username+")のパスワードが間違っています"})

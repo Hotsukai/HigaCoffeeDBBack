@@ -23,3 +23,11 @@ def convert_coffees_to_json(coffees):
             "drinker_id": coffee.drinker_id,
         })
     return json
+
+
+def convert_user_to_json(user):
+    return {"id": user.id,
+            "name": user.name,
+            "profile": user.profile,
+            "created_at": user.created_at,
+            "updated_at": user.updated_at}
