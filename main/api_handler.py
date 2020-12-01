@@ -1,6 +1,6 @@
 from logging import log
 import flask
-from main import app, db, bcrypt, login_manager
+from main import app, db, bcrypt, login_manager, WATCH_WORD
 from main.models import Coffee, User, Review, BEAN, EXTRACTION_METHOD, MESH
 from main.utils import *
 from flask_login import login_user, logout_user, login_required, current_user
@@ -14,7 +14,7 @@ def load_user(user_id):
 
 @app.route('/')
 def helloworld():
-    return 'Hello, World!'
+    return 'Hello, World! こんにちは'
 
 
 @app.route('/', methods=['POST'])
@@ -26,8 +26,12 @@ def oumugaeshi():
 @app.route('/auth/create_user/', methods=['POST'])
 def create_user():
     form_data = flask.request.json
-    username = form_data['username']
-    password = form_data['password']
+    username = form_data.get('username')
+    password = form_data.get('password')
+    profile = form_data.get('profile')
+    watchword = form_data.get('watchword')
+    if watchword != WATCH_WORD:
+        return flask.jsonify({"message": "合言葉が違います"}), 400
     # TODO:有効な文字列か確認。
     if not username:
         return flask.jsonify({"message": "ユーザー名は必須です"}), 400
@@ -38,7 +42,8 @@ def create_user():
         return flask.jsonify({"message": "ユーザー名が利用されています。"}), 400
 
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-    user = User(name=username, encrypted_password=hashed_password)
+    user = User(name=username, encrypted_password=hashed_password,
+                profile=profile)
     db.session.add(user)
     db.session.commit()
     return flask.jsonify({"message": "ユーザー("+username+")を作成しました。"})
@@ -51,8 +56,8 @@ def create_user():
 @app.route('/auth/login/', methods=['POST'])
 def login():
     form_data = flask.request.json
-    username = form_data['username']
-    password = form_data['password']
+    username = form_data.get('username')
+    password = form_data.get('password')
     # TODO:有効な文字列か確認。
     if not username:
         return flask.jsonify({"message": "ユーザー名は必須です"}), 400
@@ -75,15 +80,15 @@ def login():
 @login_required
 def create_coffee():
     form_data = flask.request.json
-    powder_amount = form_data["powder_amount"]
-    extraction_time = form_data['extraction_time']
-    extraction_method_id = form_data['extraction_method_id']
-    mesh_id = form_data['mesh_id']
-    water_amount = form_data['water_amount']
-    water_temperature = form_data['water_temperature']
-    bean_id = form_data['bean_id']
+    powder_amount = form_data.get("powder_amount")
+    extraction_time = form_data.get('extraction_time')
+    extraction_method_id = form_data.get('extraction_method_id')
+    mesh_id = form_data.get('mesh_id')
+    water_amount = form_data.get('water_amount')
+    water_temperature = form_data.get('water_temperature')
+    bean_id = form_data.get('bean_id')
     dripper_id = current_user.id
-    drinker_id = form_data['drinker_id']
+    drinker_id = form_data.get('drinker_id')
     new_coffee = Coffee(powder_amount=powder_amount, extraction_time=extraction_time, extraction_method_id=extraction_method_id,
                         mesh_id=mesh_id, water_amount=water_amount, water_temperature=water_temperature, bean_id=bean_id, dripper_id=dripper_id, drinker_id=drinker_id)
     db.session.add(new_coffee)
