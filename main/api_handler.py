@@ -70,18 +70,21 @@ def login():
     password = form_data.get('password')
     # TODO:有効な文字列か確認。
     if not username:
-        return flask.jsonify({"message": "ユーザー名は必須です"}), 400
+        return flask.jsonify({"result": False, "message": "ユーザー名は必須です"})
     if not password:
-        return flask.jsonify({"message": "パスワードは必須です"}), 400
+        return flask.jsonify({"result": False, "message": "パスワードは必須です"})
     user = User.query.filter_by(name=username).first()
-    if user and bcrypt.check_password_hash(user.encrypted_password, password):
+    if not user:
+        return flask.jsonify({"result": False, "message": "ユーザー("+username+")は登録されていません"})
+
+    if bcrypt.check_password_hash(user.encrypted_password, password):
         # ログイン成功
         login_user(user)
         print("ログイン成功")
         return flask.jsonify({"result": True, "message": "ユーザー("+username+")のログインに成功しました。"})
     else:
         print("ログイン失敗")
-        return flask.jsonify({"result": False, "message": "ユーザー("+username+")のログインに失敗しました。"})
+        return flask.jsonify({"result": False, "message": "ユーザー("+username+")のパスワードが間違っています"})
 
 # coffee create
 
