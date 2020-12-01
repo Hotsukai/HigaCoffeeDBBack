@@ -1,10 +1,20 @@
 from logging import log
 import flask
-from main import app, db, bcrypt, login_manager, WATCH_WORD
+from main import app, db, bcrypt, login_manager, WATCH_WORD, ALLOW_ORIGIN
 from main.models import Coffee, User, Review, BEAN, EXTRACTION_METHOD, MESH
 from main.utils import *
 from flask_login import login_user, logout_user, login_required, current_user
 # TODO: def checkPassフレーズ
+
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', ALLOW_ORIGIN)
+    response.headers.add('Access-Control-Allow-Headers',
+                         'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods',
+                         'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 
 @login_manager.user_loader
@@ -23,7 +33,7 @@ def oumugaeshi():
 
 
 # user Create
-@app.route('/auth/create_user/', methods=['POST'])
+@app.route('/auth/create_user', methods=['POST'])
 def create_user():
     form_data = flask.request.json
     username = form_data.get('username')
@@ -53,7 +63,7 @@ def create_user():
 # TODO:エラーハンドリング
 
 
-@app.route('/auth/login/', methods=['POST'])
+@app.route('/auth/login', methods=['POST'])
 def login():
     form_data = flask.request.json
     username = form_data.get('username')
@@ -68,10 +78,10 @@ def login():
         # ログイン成功
         login_user(user)
         print("ログイン成功")
-        return flask.jsonify({"message": "ユーザー("+username+")のログインに成功しました。"})
+        return flask.jsonify({"result": True, "message": "ユーザー("+username+")のログインに成功しました。"})
     else:
         print("ログイン失敗")
-        return flask.jsonify({"message": "ユーザー("+username+")のログインに失敗しました。"})
+        return flask.jsonify({"result": False, "message": "ユーザー("+username+")のログインに失敗しました。"})
 
 # coffee create
 

@@ -2,6 +2,7 @@
 from logging import log
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 import os
@@ -17,6 +18,8 @@ db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)  
 login_manager = LoginManager()
 login_manager.init_app(app)
+CORS(app)
+ALLOW_ORIGIN=os.environ.get('ALLOW_ORIGIN')
 WATCH_WORD=os.environ.get("WATCH_WORD")
 
 import main.api_handler 
