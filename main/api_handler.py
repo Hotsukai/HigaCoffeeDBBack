@@ -89,21 +89,33 @@ def create_coffee():
     db.session.add(new_coffee)
     db.session.commit()
     return flask.jsonify({"message": "コーヒーを作成しました。"})
-# TODO: queries
+# TODO: queries,limit
+
 
 @app.route("/coffees/", methods=['GET'])
 def get_coffees():
     sql_query = []
-    if flask.request.args.get('dripper_id') is not None:
+    has_review = flask.request.args.get('has_review', type=str)
+    dripper_id = flask.request.args.get('dripper_id', type=int)
+    drinker_id = flask.request.args.get('drinker_id', type=int)
+    bean_id = flask.request.args.get('bean_id', type=int)
+    print("has_review : ", has_review,
+          "dripper_id : ", dripper_id,
+          "drinker_id : ", drinker_id,
+          "bean_id : ", bean_id)
+    if dripper_id is not None:
         sql_query.append(Coffee.dripper_id ==
-                         flask.request.args.get('dripper_id'))
-    if flask.request.args.get('drinker_id') is not None:
-        sql_query.append(Coffee.dripper_id ==
-                         flask.request.args.get('drinker_id'))
-    if flask.request.args.get('bean_id') is not None:
-        sql_query.append(Coffee.bean_id == flask.request.args.get('bean_id'))
+                         dripper_id)
+    if drinker_id is not None:
+        sql_query.append(Coffee.drinker_id == drinker_id)
+    if bean_id is not None:
+        sql_query.append(Coffee.bean_id == bean_id)
+    if has_review == "true":
+        sql_query.append(Coffee.review_id != None)
+    elif has_review == "false":
+        sql_query.append(Coffee.review_id == None)
 
     coffees = Coffee.query.filter(db.and_(*sql_query)).all()
-    print("coffees : ",coffees)
-    
+    print("coffees : ", coffees)
+
     return flask.jsonify(convert_coffees_to_json(coffees))
