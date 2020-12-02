@@ -31,3 +31,32 @@ def convert_user_to_json(user):
             "profile": user.profile,
             "created_at": user.created_at,
             "updated_at": user.updated_at}
+
+
+def convert_review_to_json(review):
+    return {
+        "id": review.id,
+        "bitterness": review.bitterness,
+        "wantRepeat": review.want_repeat,
+        "situation": review.situation,
+        "strongness": review.strongness,
+        "feeling": review.feeling,
+        "created_at": review.created_at,
+        "updated_at": review.updated_at
+    }
+
+
+def convert_reviews_to_json(reviews):
+    json = {"data": []}
+    for review in reviews:
+        json["data"].append({
+            "id": review.id,
+            "bitterness": review.bitterness,
+            "wantRepeat": review.want_repeat,
+            "situation": review.situation,
+            "strongness": review.strongness,
+            "feeling": review.feeling,
+            "created_at": review.created_at,
+            "updated_at": review.updated_at
+        })
+    return json

@@ -19,7 +19,7 @@ def after_request(response):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.filter_by(id=user_id).first()
+    return User.query.filter_by(id=user_id).one_or_none()
 
 
 @app.route('/')
@@ -47,8 +47,7 @@ def create_user():
         return flask.jsonify({"message": "ユーザー名は必須です"}), 400
     if not password:
         return flask.jsonify({"message": "パスワードは必須です"}), 400
-    users = User.query.filter_by(name=username).all()
-    if len(users) != 0:
+    if User.query.filter_by(name=username).one_or_none():
         return flask.jsonify({"message": "ユーザー名が利用されています。"}), 400
 
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
@@ -73,15 +72,15 @@ def login():
         return flask.jsonify({"result": False, "message": "ユーザー名は必須です"})
     if not password:
         return flask.jsonify({"result": False, "message": "パスワードは必須です"})
-    user = User.query.filter_by(name=username).first()
-    if not user:
+    user = User.query.filter_by(name=username).one_or_none()
+    if user is None:
         return flask.jsonify({"result": False, "message": "ユーザー("+username+")は登録されていません"})
 
     if bcrypt.check_password_hash(user.encrypted_password, password):
         # ログイン成功
         login_user(user)
         print("ログイン成功")
-        return flask.jsonify({"result": True, "message": "ユーザー("+username+")のログインに成功しました。","data":convert_user_to_json(user)})
+        return flask.jsonify({"result": True, "message": "ユーザー("+username+")のログインに成功しました。", "data": convert_user_to_json(user)})
     else:
         print("ログイン失敗")
         return flask.jsonify({"result": False, "message": "ユーザー("+username+")のパスワードが間違っています"})
@@ -89,7 +88,7 @@ def login():
 # coffee create
 
 
-@app.route("/coffee/create/", methods=['POST'])
+@app.route("/coffees", methods=['POST'])
 @login_required
 def create_coffee():
     form_data = flask.request.json
@@ -110,7 +109,7 @@ def create_coffee():
 # TODO: queries,limit
 
 
-@app.route("/coffees/", methods=['GET'])
+@app.route("/coffees", methods=['GET'])
 def get_coffees():
     sql_query = []
     has_review = flask.request.args.get('has_review', type=str)
@@ -137,3 +136,35 @@ def get_coffees():
     print("coffees : ", coffees)
 
     return flask.jsonify(convert_coffees_to_json(coffees))
+
+
+@app.route("/reviews", methods=['GET'])
+def get_reviews():
+    reviewer_id = flask.request.args.get('reviewer', type=int)
+    user = {}
+    # if reviewer_id is None:
+    #     reviews = db.session.query(User, Review).filter
+    #     user = User.query.filter_by(id=reviewer_id).one()
+    # reviews = user.reviews
+    reviews=Review.query.all()
+    print("reviews : ", reviews)
+
+    return flask.jsonify(convert_reviews_to_json(reviews))
+
+@app.route("/reviews", methods=['POST'])
+@login_required
+def create_review():
+    form_data = flask.request.json
+    bitterness = form_data.get('bitterness')
+    want_repeat = form_data.get('wantRepeat')
+    situation = form_data.get('situation')
+    strongness = form_data.get('strongness')
+    feeling = form_data.get('feeling')
+    reviewer_id = current_user.id
+
+    new_review = Review(bitterness=bitterness, want_repeat=want_repeat,
+                        situation=situation, strongness=strongness, feeling=feeling, reviewer_id=reviewer_id)
+    db.session.add(new_review)
+    db.session.commit()
+    return flask.jsonify({"result": True, "message": "レビューを作成しました。", "data": convert_review_to_json(new_review)})
+# TODO: queries,limit

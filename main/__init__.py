@@ -22,4 +22,4 @@ CORS(app)
 ALLOW_ORIGIN=os.environ.get('ALLOW_ORIGIN')
 WATCH_WORD=os.environ.get("WATCH_WORD")
 
-import main.api_handler 
+import main.controller
