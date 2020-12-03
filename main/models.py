@@ -1,6 +1,14 @@
-from main import db
+from main import db, app
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from flask_migrate import Migrate
+
+drinkers = db.Table("drinkers",
+                    db.Column("coffee_id", db.Integer,
+                              db.ForeignKey("coffees.id")),
+                    db.Column("drinker_id", db.Integer,
+                              db.ForeignKey("users.id"))
+                    )
 
 
 class Coffee(db.Model):
@@ -12,20 +20,19 @@ class Coffee(db.Model):
     mesh_id = db.Column(db.Integer)
     water_amount = db.Column(db.Integer)
     water_temperature = db.Column(db.Integer)
-    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    created_at = db.Column(db.DateTime, nullable=False,
+                           default=db.func.now())
     updated_at = db.Column(db.DateTime, nullable=False,
                            default=db.func.now(), onupdate=db.func.now())
     bean_id = db.Column(db.Integer, nullable=False)
     dripper_id = db.Column(db.Integer, db.ForeignKey(
         "users.id"),  nullable=False)
-    drinker_id = db.Column(db.Integer, db.ForeignKey(
-        "users.id"),  nullable=False)
     dripper = db.relationship(
         "User", primaryjoin="Coffee.dripper_id==User.id")
     drinker = db.relationship(
-        "User", primaryjoin="Coffee.drinker_id==User.id")
-    review_id = db.Column(db.Integer, db.ForeignKey(
-        "reviews.id"))
+        "User", secondary="drinkers", primaryjoin=(drinkers.c.drinker_id == id),
+        secondaryjoin=(drinkers.c.drinker_id == id))
+    reviews = db.relationship("Review", backref="coffees")
 
     def __repr__(self):
         return "Coffee(id={})".format(self.id)
@@ -40,7 +47,9 @@ class User(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     updated_at = db.Column(db.DateTime, nullable=False,
                            default=db.func.now(), onupdate=db.func.now())
-    reviews = db.relationship("Review", backref="user")
+    reviews = db.relationship("Review", backref="users")
+    drink_coffees = db.relationship("Coffee", secondary=drinkers, primaryjoin=(
+        drinkers.c.coffee_id == id), secondaryjoin=(drinkers.c.coffee_id == id))
 
     def __repr__(self):
         return "User(id={}, username={})".format(self.id, self.username)
@@ -57,7 +66,8 @@ class Review(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     updated_at = db.Column(db.DateTime, nullable=False,
                            default=db.func.now(), onupdate=db.func.now())
-    coffee = db.relationship("Coffee", backref="review")
+    coffee_id = reviewer_id = db.Column(db.Integer, db.ForeignKey(
+        "coffees.id"),  nullable=False)
     reviewer_id = db.Column(db.Integer, db.ForeignKey(
         "users.id"),  nullable=False)
 
@@ -84,7 +94,6 @@ MESH = {
     }
 }
 
-
-def init():
-    db.create_all()
 # TODO: seedデータ
+
+migrate = Migrate(app, db)
