@@ -168,3 +168,7 @@ def create_review():
     db.session.commit()
     return flask.jsonify({"result": True, "message": "レビューを作成しました。", "data": convert_review_to_json(new_review)})
 # TODO: queries,limit
+
+@app.route("/beans", methods=['GET'])
+def get_beans():
+    return flask.jsonify({"result" :True,"data":BEAN})

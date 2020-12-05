@@ -14,7 +14,8 @@ HigaCoffee ではコーヒーを題材にフロント開発・バックエンド
 | /reviews          | GET    | レビュー取得           |      |
 | /reviews          | POST   | レビュー登録           |      |
 | /auth/login       | POST   | ログイン               |      |
-| /auth/create_user | POST   | 登録                   |      |
+| /auth/create_user | POST   | ユーザー登録           |      |
+| /beans            | GET    | 豆の種類取得           |      |
 
 # 実行方法
 
