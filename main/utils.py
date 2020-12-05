@@ -37,12 +37,14 @@ def convert_review_to_json(review):
     return {
         "id": review.id,
         "bitterness": review.bitterness,
-        "wantRepeat": review.want_repeat,
+        "coffeeId": review.coffee_id,
+        "feeling": review.feeling,
+        "reviewerId":review.reviewer_id,
         "situation": review.situation,
         "strongness": review.strongness,
-        "feeling": review.feeling,
-        "created_at": review.created_at,
-        "updated_at": review.updated_at
+        "wantRepeat": review.want_repeat,
+        "createdAt": review.created_at,
+        "updatedAt": review.updated_at
     }
 
 

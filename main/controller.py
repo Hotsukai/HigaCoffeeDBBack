@@ -146,29 +146,33 @@ def get_reviews():
     #     reviews = db.session.query(User, Review).filter
     #     user = User.query.filter_by(id=reviewer_id).one()
     # reviews = user.reviews
-    reviews=Review.query.all()
+    reviews = Review.query.all()
     print("reviews : ", reviews)
 
     return flask.jsonify(convert_reviews_to_json(reviews))
+
 
 @app.route("/reviews", methods=['POST'])
 @login_required
 def create_review():
     form_data = flask.request.json
+
     bitterness = form_data.get('bitterness')
-    want_repeat = form_data.get('wantRepeat')
-    situation = form_data.get('situation')
-    strongness = form_data.get('strongness')
+    coffee_id = form_data.get('coffee_id')
     feeling = form_data.get('feeling')
     reviewer_id = current_user.id
+    situation = form_data.get('situation')
+    strongness = form_data.get('strongness')
+    want_repeat = form_data.get('wantRepeat')
 
-    new_review = Review(bitterness=bitterness, want_repeat=want_repeat,
+    new_review = Review(bitterness=bitterness, want_repeat=want_repeat, coffee_id=coffee_id,
                         situation=situation, strongness=strongness, feeling=feeling, reviewer_id=reviewer_id)
     db.session.add(new_review)
     db.session.commit()
     return flask.jsonify({"result": True, "message": "レビューを作成しました。", "data": convert_review_to_json(new_review)})
 # TODO: queries,limit
 
+
 @app.route("/beans", methods=['GET'])
 def get_beans():
-    return flask.jsonify({"result" :True,"data":BEAN})
+    return flask.jsonify({"result": True, "data": BEAN})
