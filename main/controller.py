@@ -85,7 +85,14 @@ def login():
         print("ログイン失敗")
         return flask.jsonify({"result": False, "message": "ユーザー("+username+")のパスワードが間違っています"})
 
-# coffee create
+@app.route("/auth", methods=['GET'])
+def auth():
+    if current_user.is_authenticated:
+        print("current_user : "+current_user.name)
+        return flask.jsonify({"result": True, "data":convert_user_to_json(current_user),"message":"現在のユーザーです"})
+    else:
+        print("ログインされていません")
+        return flask.jsonify({"result": False, "data":None,"message":"ログインされていません"})
 
 
 @app.route("/coffees", methods=['POST'])
