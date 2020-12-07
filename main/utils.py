@@ -1,3 +1,4 @@
+from main.models import Coffee
 from flask.json import jsonify
 
 
@@ -20,9 +21,21 @@ def convert_coffees_to_json(coffees):
             "water_temperature": coffee.water_temperature,
             "bean_id": coffee.bean_id,
             "dripper_id": coffee.dripper.id,
-            "drinker_id": coffee.drinker_id,
         })
     return json
+
+
+def convert_coffee_to_json(coffee):
+    return{
+        "powder_amount": coffee.powder_amount,
+        "extraction_time": coffee.extraction_time,
+        "extraction_method_id": coffee.extraction_method_id,
+        "mesh_id": coffee.mesh_id,
+        "water_amount": coffee.water_amount,
+        "water_temperature": coffee.water_temperature,
+        "bean_id": coffee.bean_id,
+        "dripper_id": coffee.dripper.id,
+    }
 
 
 def convert_user_to_json(user):
@@ -39,19 +52,19 @@ def convert_review_to_json(review):
         "bitterness": review.bitterness,
         "coffeeId": review.coffee_id,
         "feeling": review.feeling,
-        "reviewerId":review.reviewer_id,
+        "reviewerId": review.reviewer_id,
         "situation": review.situation,
         "strongness": review.strongness,
         "wantRepeat": review.want_repeat,
         "createdAt": review.created_at,
-        "updatedAt": review.updated_at
+        "updatedAt": review.updated_at,
     }
 
 
 def convert_reviews_to_json(reviews):
-    json = {"data": []}
+    json = []
     for review in reviews:
-        json["data"].append({
+        json.append({
             "id": review.id,
             "bitterness": review.bitterness,
             "wantRepeat": review.want_repeat,
@@ -59,6 +72,8 @@ def convert_reviews_to_json(reviews):
             "strongness": review.strongness,
             "feeling": review.feeling,
             "created_at": review.created_at,
-            "updated_at": review.updated_at
+            "updated_at": review.updated_at,
+            "coffee": convert_coffee_to_json(Coffee.query.get(review.coffee_id))
+
         })
     return json

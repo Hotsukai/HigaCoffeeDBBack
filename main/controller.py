@@ -85,14 +85,15 @@ def login():
         print("ログイン失敗")
         return flask.jsonify({"result": False, "message": "ユーザー("+username+")のパスワードが間違っています"})
 
+
 @app.route("/auth", methods=['GET'])
 def auth():
     if current_user.is_authenticated:
         print("current_user : "+current_user.name)
-        return flask.jsonify({"result": True, "data":convert_user_to_json(current_user),"message":"現在のユーザーです"})
+        return flask.jsonify({"result": True, "data": convert_user_to_json(current_user), "message": "現在のユーザーです"})
     else:
         print("ログインされていません")
-        return flask.jsonify({"result": False, "data":None,"message":"ログインされていません"})
+        return flask.jsonify({"result": False, "data": None, "message": "ログインされていません"})
 
 
 @app.route("/coffees", methods=['POST'])
@@ -148,15 +149,12 @@ def get_coffees():
 @app.route("/reviews", methods=['GET'])
 def get_reviews():
     reviewer_id = flask.request.args.get('reviewer', type=int)
-    user = {}
-    # if reviewer_id is None:
-    #     reviews = db.session.query(User, Review).filter
-    #     user = User.query.filter_by(id=reviewer_id).one()
-    # reviews = user.reviews
-    reviews = Review.query.all()
-    print("reviews : ", reviews)
-
-    return flask.jsonify(convert_reviews_to_json(reviews))
+    if reviewer_id is not None:
+        user = User.query.get(reviewer_id)
+        if user is not None:
+            reviews = user.reviews
+            return flask.jsonify({"result":True,"data":convert_reviews_to_json(reviews)})
+    return flask.jsonify({"result":False,"data":None})
 
 
 @app.route("/reviews", methods=['POST'])
