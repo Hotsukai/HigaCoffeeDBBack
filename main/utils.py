@@ -1,4 +1,4 @@
-from main.models import Coffee
+from main.models import Coffee,BEAN
 from flask.json import jsonify
 
 
@@ -27,14 +27,17 @@ def convert_coffees_to_json(coffees):
 
 def convert_coffee_to_json(coffee):
     return{
-        "powder_amount": coffee.powder_amount,
-        "extraction_time": coffee.extraction_time,
-        "extraction_method_id": coffee.extraction_method_id,
-        "mesh_id": coffee.mesh_id,
-        "water_amount": coffee.water_amount,
-        "water_temperature": coffee.water_temperature,
-        "bean_id": coffee.bean_id,
-        "dripper_id": coffee.dripper.id,
+        "powderAmount": coffee.powder_amount,
+        "id":coffee.id,
+        "extractionTime": coffee.extraction_time,
+        "extractionMethod_id": coffee.extraction_method_id,
+        "meshId": coffee.mesh_id,
+        "waterAmount": coffee.water_amount,
+        "waterTemperature": coffee.water_temperature,
+        "beanId": coffee.bean_id,
+        "bean":BEAN[coffee.bean_id],
+        "dripperId": coffee.dripper.id,
+        "createdAt":coffee.created_at
     }
 
 
@@ -71,8 +74,8 @@ def convert_reviews_to_json(reviews):
             "situation": review.situation,
             "strongness": review.strongness,
             "feeling": review.feeling,
-            "created_at": review.created_at,
-            "updated_at": review.updated_at,
+            "createdAt": review.created_at,
+            "updatedAt": review.updated_at,
             "coffee": convert_coffee_to_json(Coffee.query.get(review.coffee_id))
 
         })

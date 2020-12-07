@@ -77,9 +77,13 @@ class Review(db.Model):
 
 BEAN = {
     1: {
-        "name": "ブラジル深煎り"},
+        "id": 1,
+        "name": "ブラジル深煎り"
+    },
     2: {
-        "name": "ブラジル中煎り"},
+        "id": 2,
+        "name": "ブラジル中煎り"
+    },
 }
 
 EXTRACTION_METHOD = {
