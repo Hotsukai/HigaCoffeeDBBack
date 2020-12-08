@@ -25,6 +25,7 @@ class Coffee(db.Model):
     updated_at = db.Column(db.DateTime, nullable=False,
                            default=db.func.now(), onupdate=db.func.now())
     bean_id = db.Column(db.Integer, nullable=False)
+    memo = db.Column(db.Text)
     dripper_id = db.Column(db.Integer, db.ForeignKey(
         "users.id"),  nullable=False)
     dripper = db.relationship(
