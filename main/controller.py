@@ -1,4 +1,5 @@
 from logging import log
+from os import name
 import flask
 from main import app, db, bcrypt, login_manager, WATCH_WORD, ALLOW_ORIGIN
 from main.models import Coffee, User, Review, BEAN, EXTRACTION_METHOD, MESH
@@ -10,6 +11,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', ALLOW_ORIGIN)
+    response.headers.add('Access-Control-Allow-Credentials',"true")
     response.headers.add('Access-Control-Allow-Headers',
                          'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods',
@@ -116,6 +118,19 @@ def create_coffee():
     return flask.jsonify({"message": "コーヒーを作成しました。"})
 # TODO: queries,limit
 
+@app.route("/users", methods=['GET'])
+@login_required
+def get_users():
+    name=flask.request.args.get('name', type=str)
+    users=[]
+    if name is not None:
+        users=User.query.filter(User.name == name).limit(50).all()
+    else:
+        users=User.query.limit(50).all()
+    data=[]
+    for user in users:
+        data.append({"name":user.name,"id":user.id})
+    return flask.jsonify({"result":True,"message":None,"data":data})
 
 @app.route("/coffees", methods=['GET'])
 def get_coffees():
@@ -181,3 +196,7 @@ def create_review():
 @app.route("/beans", methods=['GET'])
 def get_beans():
     return flask.jsonify({"result": True, "data": BEAN})
+
+@app.route("/extraction_methods", methods=['GET'])
+def get_extraction_methods():
+    return flask.jsonify({"result": True, "data": EXTRACTION_METHOD})

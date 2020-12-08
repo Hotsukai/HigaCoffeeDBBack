@@ -88,14 +88,20 @@ BEAN = {
 
 EXTRACTION_METHOD = {
     1: {
+        "id": 1,
         "name": "フレンチプレス",
-    }
+    },
 }
 
 MESH = {
     1: {
+        "id": 1,
         "name": "粗め"
-    }
+    },
+    2: {
+        "id": 2,
+        "name": "やや粗め"
+    },
 }
 
 # TODO: seedデータ
