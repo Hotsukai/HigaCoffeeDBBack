@@ -76,22 +76,17 @@ def login():
         return flask.jsonify({"result": False, "message": "ユーザー("+username+")は登録されていません"})
 
     if bcrypt.check_password_hash(user.encrypted_password, password):
-        # ログイン成功
         login_user(user)
-        print("ログイン成功")
         return flask.jsonify({"result": True, "message": "ユーザー("+username+")のログインに成功しました。", "data": convert_user_to_json(user)})
     else:
-        print("ログイン失敗")
         return flask.jsonify({"result": False, "message": "ユーザー("+username+")のパスワードが間違っています"})
 
 
 @app.route("/auth", methods=['GET'])
 def auth():
     if current_user.is_authenticated:
-        print("current_user : "+current_user.name)
         return flask.jsonify({"result": True, "data": convert_user_to_json(current_user), "message": "現在のユーザーです"})
     else:
-        print("ログインされていません")
         return flask.jsonify({"result": False, "data": None, "message": "ログインされていません"})
 
 
@@ -117,26 +112,26 @@ def get_coffees():
     dripper_id = flask.request.args.get('dripper_id', type=int)
     drinker_id = flask.request.args.get('drinker_id', type=int)
     bean_id = flask.request.args.get('bean_id', type=int)
-    print("has_review : ", has_review,
-          "dripper_id : ", dripper_id,
-          "drinker_id : ", drinker_id,
-          "bean_id : ", bean_id)
+
     if dripper_id is not None:
-        sql_query.append(Coffee.dripper_id ==
-                         dripper_id)
+        if current_user.is_authenticated and dripper_id is current_user.id:
+            sql_query.append(Coffee.dripper_id == dripper_id)
+        else:
+            return flask.jsonify({"result": False, "message": "ログインしてください"})
     if drinker_id is not None:
-        sql_query.append(Coffee.drinker_id == drinker_id)
+        if current_user.is_authenticated and drinker_id is current_user.id:
+            sql_query.append(Coffee.drinker.any(id=drinker_id))
+        else:
+            return flask.jsonify({"result": False, "message": "ログインしてください"})
     if bean_id is not None:
         sql_query.append(Coffee.bean_id == bean_id)
     if has_review == "true":
-        sql_query.append(Coffee.review_id != None)
+        sql_query.append(Coffee.reviews.any())
     elif has_review == "false":
-        sql_query.append(Coffee.review_id == None)
+        sql_query.append(~ Coffee.reviews.any())
 
     coffees = Coffee.query.filter(db.and_(*sql_query)).limit(50).all()
-    print("coffees : ", coffees)
-
-    return flask.jsonify(convert_coffees_to_json(coffees))
+    return flask.jsonify({"result": True, "data": convert_coffees_to_json(coffees)})
 
 
 @app.route("/coffees", methods=['POST'])
@@ -160,10 +155,8 @@ def create_coffee():
     db.session.add(new_coffee)
     # TODO:Flaskでもバリデーションnot null & is number
     # 重複と空白削除
-    print("drinkerIds", form_data.get("drinkerIds"))
     for drinker_id in [id for id in list(set(form_data.get('drinkerIds'))) if id != '' and id != None]:
         drinker = User.query.filter_by(id=drinker_id).one_or_none()
-        print("drinker : ", drinker)
         new_coffee.drinker.append(drinker)
     db.session.commit()
     return flask.jsonify({"result": True, "message": "コーヒーを作成しました。", "data": convert_coffee_to_json(new_coffee)})
