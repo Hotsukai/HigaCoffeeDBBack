@@ -158,10 +158,12 @@ def create_coffee():
                         extraction_time=extraction_time, extraction_method_id=extraction_method_id,
                         mesh_id=mesh_id, memo=memo, powder_amount=powder_amount, water_amount=water_amount, water_temperature=water_temperature, )
     db.session.add(new_coffee)
-    for drinker_id in form_data.get('drinkerIds'):
-        print("drinkerId",drinker_id)
+    # TODO:Flaskでもバリデーションnot null & is number
+    # 重複と空白削除
+    print("drinkerIds", form_data.get("drinkerIds"))
+    for drinker_id in [id for id in list(set(form_data.get('drinkerIds'))) if id != '' and id != None]:
         drinker = User.query.filter_by(id=drinker_id).one_or_none()
-        print("drinker : ",drinker)
+        print("drinker : ", drinker)
         new_coffee.drinker.append(drinker)
     db.session.commit()
     return flask.jsonify({"result": True, "message": "コーヒーを作成しました。", "data": convert_coffee_to_json(new_coffee)})

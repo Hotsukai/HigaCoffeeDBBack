@@ -14,26 +14,28 @@ drinkers = db.Table("drinkers",
 class Coffee(db.Model):
     __tablename__ = "coffees"
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    powder_amount = db.Column(db.Integer, nullable=False)
-    extraction_time = db.Column(db.Integer)
-    extraction_method_id = db.Column(db.Integer)
-    mesh_id = db.Column(db.Integer)
-    water_amount = db.Column(db.Integer)
-    water_temperature = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, nullable=False,
-    
                            default=db.func.now())
     updated_at = db.Column(db.DateTime, nullable=False,
                            default=db.func.now(), onupdate=db.func.now())
     bean_id = db.Column(db.Integer, nullable=False)
-    memo = db.Column(db.Text)
     dripper_id = db.Column(db.Integer, db.ForeignKey(
         "users.id"),  nullable=False)
     dripper = db.relationship(
         "User", primaryjoin="Coffee.dripper_id==User.id")
     drinker = db.relationship(
         "User", secondary="drinkers")
+    extraction_time = db.Column(db.Integer)
+    extraction_method_id = db.Column(db.Integer)
+    mesh_id = db.Column(db.Integer)
+    memo = db.Column(db.Text)
+    powder_amount = db.Column(db.Integer, nullable=False)
     reviews = db.relationship("Review", backref="coffees")
+    water_amount = db.Column(db.Integer)
+    water_temperature = db.Column(db.Integer)
+    
+  
+
 
     def __repr__(self):
         return "Coffee(id={})".format(self.id)
