@@ -5,13 +5,12 @@ from main import app, db, bcrypt, login_manager, WATCH_WORD, ALLOW_ORIGIN
 from main.models import Coffee, User, Review, BEAN, EXTRACTION_METHOD, MESH
 from main.utils import *
 from flask_login import login_user, logout_user, login_required, current_user
-# TODO: def checkPassフレーズ
 
 
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', ALLOW_ORIGIN)
-    response.headers.add('Access-Control-Allow-Credentials',"true")
+    response.headers.add('Access-Control-Allow-Credentials', "true")
     response.headers.add('Access-Control-Allow-Headers',
                          'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods',
@@ -58,9 +57,7 @@ def create_user():
     db.session.add(user)
     db.session.commit()
     return flask.jsonify({"message": "ユーザー("+username+")を作成しました。"})
-# user index TODO:
-# user show
-# user update
+
 # TODO:エラーハンドリング
 
 
@@ -98,39 +95,20 @@ def auth():
         return flask.jsonify({"result": False, "data": None, "message": "ログインされていません"})
 
 
-@app.route("/coffees", methods=['POST'])
-@login_required
-def create_coffee():
-    form_data = flask.request.json
-    powder_amount = form_data.get("powder_amount")
-    extraction_time = form_data.get('extraction_time')
-    extraction_method_id = form_data.get('extraction_method_id')
-    mesh_id = form_data.get('mesh_id')
-    water_amount = form_data.get('water_amount')
-    water_temperature = form_data.get('water_temperature')
-    bean_id = form_data.get('bean_id')
-    dripper_id = current_user.id
-    drinker_id = form_data.get('drinker_id')
-    new_coffee = Coffee(powder_amount=powder_amount, extraction_time=extraction_time, extraction_method_id=extraction_method_id,
-                        mesh_id=mesh_id, water_amount=water_amount, water_temperature=water_temperature, bean_id=bean_id, dripper_id=dripper_id, drinker_id=drinker_id)
-    db.session.add(new_coffee)
-    db.session.commit()
-    return flask.jsonify({"message": "コーヒーを作成しました。"})
-# TODO: queries,limit
-
 @app.route("/users", methods=['GET'])
 @login_required
 def get_users():
-    name=flask.request.args.get('name', type=str)
-    users=[]
+    name = flask.request.args.get('name', type=str)
+    users = []
     if name is not None:
-        users=User.query.filter(User.name == name).limit(50).all()
+        users = User.query.filter(User.name == name).limit(50).all()
     else:
-        users=User.query.limit(50).all()
-    data=[]
+        users = User.query.limit(50).all()
+    data = []
     for user in users:
-        data.append({"name":user.name,"id":user.id})
-    return flask.jsonify({"result":True,"message":None,"data":data})
+        data.append({"name": user.name, "id": user.id})
+    return flask.jsonify({"result": True, "message": None, "data": data})
+
 
 @app.route("/coffees", methods=['GET'])
 def get_coffees():
@@ -155,10 +133,38 @@ def get_coffees():
     elif has_review == "false":
         sql_query.append(Coffee.review_id == None)
 
-    coffees = Coffee.query.filter(db.and_(*sql_query)).all()
+    coffees = Coffee.query.filter(db.and_(*sql_query)).limit(50).all()
     print("coffees : ", coffees)
 
     return flask.jsonify(convert_coffees_to_json(coffees))
+
+
+@app.route("/coffees", methods=['POST'])
+@login_required
+def create_coffee():
+    form_data = flask.request.json
+    if current_user.id != form_data.get('dripperId'):
+        return flask.jsonify({"result": False, "message": "ユーザが不正です"})
+    bean_id = form_data.get('beanId')
+    dripper_id = current_user.id
+    extraction_time = form_data.get('extractionTime')
+    extraction_method_id = form_data.get('extractionMethodId')
+    mesh_id = form_data.get('meshId')
+    memo = form_data.get('memo')
+    powder_amount = form_data.get("powderAmount")
+    water_amount = form_data.get('waterAmount')
+    water_temperature = form_data.get('waterTemperature')
+    new_coffee = Coffee(bean_id=bean_id,  dripper_id=dripper_id,
+                        extraction_time=extraction_time, extraction_method_id=extraction_method_id,
+                        mesh_id=mesh_id, memo=memo, powder_amount=powder_amount, water_amount=water_amount, water_temperature=water_temperature, )
+    db.session.add(new_coffee)
+    for drinker_id in form_data.get('drinkerIds'):
+        print("drinkerId",drinker_id)
+        drinker = User.query.filter_by(id=drinker_id).one_or_none()
+        print("drinker : ",drinker)
+        new_coffee.drinker.append(drinker)
+    db.session.commit()
+    return flask.jsonify({"result": True, "message": "コーヒーを作成しました。", "data": convert_coffee_to_json(new_coffee)})
 
 
 @app.route("/reviews", methods=['GET'])
@@ -168,8 +174,8 @@ def get_reviews():
         user = User.query.get(reviewer_id)
         if user is not None:
             reviews = user.reviews
-            return flask.jsonify({"result":True,"data":convert_reviews_to_json(reviews)})
-    return flask.jsonify({"result":False,"data":None})
+            return flask.jsonify({"result": True, "data": convert_reviews_to_json(reviews)})
+    return flask.jsonify({"result": False, "data": None})
 
 
 @app.route("/reviews", methods=['POST'])
@@ -196,6 +202,7 @@ def create_review():
 @app.route("/beans", methods=['GET'])
 def get_beans():
     return flask.jsonify({"result": True, "data": BEAN})
+
 
 @app.route("/extraction_methods", methods=['GET'])
 def get_extraction_methods():

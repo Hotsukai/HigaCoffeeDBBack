@@ -21,6 +21,7 @@ class Coffee(db.Model):
     water_amount = db.Column(db.Integer)
     water_temperature = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, nullable=False,
+    
                            default=db.func.now())
     updated_at = db.Column(db.DateTime, nullable=False,
                            default=db.func.now(), onupdate=db.func.now())
@@ -31,8 +32,7 @@ class Coffee(db.Model):
     dripper = db.relationship(
         "User", primaryjoin="Coffee.dripper_id==User.id")
     drinker = db.relationship(
-        "User", secondary="drinkers", primaryjoin=(drinkers.c.drinker_id == id),
-        secondaryjoin=(drinkers.c.drinker_id == id))
+        "User", secondary="drinkers")
     reviews = db.relationship("Review", backref="coffees")
 
     def __repr__(self):
@@ -49,11 +49,10 @@ class User(db.Model, UserMixin):
     updated_at = db.Column(db.DateTime, nullable=False,
                            default=db.func.now(), onupdate=db.func.now())
     reviews = db.relationship("Review", backref="users")
-    drink_coffees = db.relationship("Coffee", secondary=drinkers, primaryjoin=(
-        drinkers.c.coffee_id == id), secondaryjoin=(drinkers.c.coffee_id == id))
+    drink_coffees = db.relationship("Coffee", secondary="drinkers")
 
     def __repr__(self):
-        return "User(id={}, username={})".format(self.id, self.username)
+        return "User(id={}, name={})".format(self.id, self.name)
 
 
 class Review(db.Model):
