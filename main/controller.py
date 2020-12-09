@@ -96,9 +96,10 @@ def get_users():
     name = flask.request.args.get('name', type=str)
     users = []
     if name is not None:
-        users = User.query.filter(User.name == name).limit(50).all()
+        users = User.query.filter(User.name == name).order_by(
+            db.desc(User.created_at)).limit(50).all()
     else:
-        users = User.query.limit(50).all()
+        users = User.query.order_by(db.desc(User.created_at)).limit(50).all()
     data = []
     for user in users:
         data.append({"name": user.name, "id": user.id})
@@ -132,7 +133,7 @@ def get_coffees():
         sql_query.append(Coffee.bean_id == bean_id)
 
     coffees = Coffee.query.filter(
-        db.and_(*sql_query)).limit(50).all()  # TODO:sort
+        db.and_(*sql_query)).order_by(db.desc(Coffee.created_at)).limit(50).all()  # TODO:sort
     return flask.jsonify({"result": True, "data": convert_coffees_to_json(coffees)})
 
 
@@ -181,7 +182,8 @@ def get_reviews():
                 reviews, with_user=current_user.is_active)
             return flask.jsonify({"result": True, "data": data})
     else:
-        reviews = Review.query.limit(50).all()
+        reviews = Review.query.order_by(
+            db.desc(Review.created_at)).limit(50).all()
         return flask.jsonify({"result": True, "data": convert_reviews_to_json(reviews, with_user=current_user.is_active)})
     return flask.jsonify({"result": False, "data": None})
 # TODO:sort
