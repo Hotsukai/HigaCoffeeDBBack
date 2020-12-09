@@ -120,17 +120,19 @@ def get_coffees():
             return flask.jsonify({"result": False, "message": "ログインしてください"}), 401
     if drinker_id is not None:
         if current_user.is_authenticated and drinker_id is current_user.id:
-            sql_query.append(Coffee.drinker.any(id=drinker_id))
+            if has_review == "true":
+                sql_query.append(Coffee.drinker.any(id=drinker_id))
+                sql_query.append(Coffee.reviews.any(reviewer_id=drinker_id))
+            elif has_review == "false":
+                sql_query.append(Coffee.drinker.any(id=drinker_id))
+                sql_query.append(~ Coffee.reviews.any(reviewer_id=drinker_id))
         else:
             return flask.jsonify({"result": False, "message": "ログインしてください"}), 401
     if bean_id is not None:
         sql_query.append(Coffee.bean_id == bean_id)
-    if has_review == "true":
-        sql_query.append(Coffee.reviews.any())
-    elif has_review == "false":
-        sql_query.append(~ Coffee.reviews.any())
+    
 
-    coffees = Coffee.query.filter(db.and_(*sql_query)).limit(50).all()
+    coffees = Coffee.query.filter(db.and_(*sql_query)).limit(50).all()#TODO:sort
     return flask.jsonify({"result": True, "data": convert_coffees_to_json(coffees)})
 
 
@@ -177,7 +179,7 @@ def get_reviews():
             reviews = user.reviews
             return flask.jsonify({"result": True, "data": convert_reviews_to_json(reviews)})
     return flask.jsonify({"result": False, "data": None})
-
+#TODO:sort
 
 @app.route("/reviews", methods=['POST'])
 @login_required

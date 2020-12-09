@@ -16,7 +16,6 @@ def convert_coffee_to_json(coffee):
         "extractionTime": coffee.extraction_time,
         "extractionMethod": EXTRACTION_METHOD[coffee.extraction_method_id] if coffee.extraction_method_id else None,
         "mesh": MESH[coffee.mesh_id] if coffee.mesh_id else None,
-        # TODO: mesh,method,dripperのname
         "waterAmount": coffee.water_amount,
         "waterTemperature": coffee.water_temperature,
         "bean": BEAN[coffee.bean_id],
