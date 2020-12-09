@@ -1,4 +1,4 @@
-from main.models import Coffee, BEAN
+from main.models import Coffee, BEAN, MESH, EXTRACTION_METHOD
 from flask.json import jsonify
 
 
@@ -14,12 +14,11 @@ def convert_coffee_to_json(coffee):
         "powderAmount": coffee.powder_amount,
         "id": coffee.id,
         "extractionTime": coffee.extraction_time,
-        "extractionMethodId": coffee.extraction_method_id,
-        "meshId": coffee.mesh_id,
+        "extractionMethod": EXTRACTION_METHOD[coffee.extraction_method_id] if coffee.extraction_method_id else None,
+        "mesh": MESH[coffee.mesh_id] if coffee.mesh_id else None,
         # TODO: mesh,method,dripperのname
         "waterAmount": coffee.water_amount,
         "waterTemperature": coffee.water_temperature,
-        "beanId": coffee.bean_id,
         "bean": BEAN[coffee.bean_id],
         "memo": coffee.memo,
         "dripperId": coffee.dripper.id,
@@ -39,9 +38,9 @@ def convert_review_to_json(review):
     return {
         "id": review.id,
         "bitterness": review.bitterness,
-        "coffeeId": review.coffee_id,
+        "coffee": convert_coffee_to_json(review.coffees),
         "feeling": review.feeling,
-        "reviewerId": review.reviewer_id,
+        "reviewer": convert_user_to_json(review.users),
         "situation": review.situation,
         "strongness": review.strongness,
         "wantRepeat": review.want_repeat,

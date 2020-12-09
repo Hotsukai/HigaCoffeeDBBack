@@ -117,12 +117,12 @@ def get_coffees():
         if current_user.is_authenticated and dripper_id is current_user.id:
             sql_query.append(Coffee.dripper_id == dripper_id)
         else:
-            return flask.jsonify({"result": False, "message": "ログインしてください"}),401
+            return flask.jsonify({"result": False, "message": "ログインしてください"}), 401
     if drinker_id is not None:
         if current_user.is_authenticated and drinker_id is current_user.id:
             sql_query.append(Coffee.drinker.any(id=drinker_id))
         else:
-            return flask.jsonify({"result": False, "message": "ログインしてください"}),401
+            return flask.jsonify({"result": False, "message": "ログインしてください"}), 401
     if bean_id is not None:
         sql_query.append(Coffee.bean_id == bean_id)
     if has_review == "true":
@@ -145,7 +145,7 @@ def get_coffee(id):
 def create_coffee():
     form_data = flask.request.json
     if current_user.id != form_data.get('dripperId'):
-        return flask.jsonify({"result": False, "message": "ユーザが不正です"}),401
+        return flask.jsonify({"result": False, "message": "ユーザが不正です"}), 401
     bean_id = form_data.get('beanId')
     dripper_id = current_user.id
     extraction_time = form_data.get('extractionTime')
@@ -197,12 +197,15 @@ def create_review():
 
         new_review = Review(bitterness=bitterness, want_repeat=want_repeat, coffee_id=coffee_id,
                             situation=situation, strongness=strongness, feeling=feeling, reviewer_id=reviewer_id)
-                            # TODO:idValidReview??
+        # TODO:idValidReview??
         db.session.add(new_review)
+        coffee = Coffee.query.get(coffee_id)
+        coffee.reviews.append(new_review)
         db.session.commit()
         return flask.jsonify({"result": True, "message": "レビューを作成しました。", "data": convert_review_to_json(new_review)})
     except Exception as e:
-        return flask.jsonify({"result": False, "message": "予期せぬエラーが発生しました : {}".format(e)}),500
+        print(e)
+        return flask.jsonify({"result": False, "message": "予期せぬエラーが発生しました : {}".format(e)}), 500
 
 
 @app.route("/beans", methods=['GET'])
