@@ -130,9 +130,9 @@ def get_coffees():
             return flask.jsonify({"result": False, "message": "ログインしてください"}), 401
     if bean_id is not None:
         sql_query.append(Coffee.bean_id == bean_id)
-    
 
-    coffees = Coffee.query.filter(db.and_(*sql_query)).limit(50).all()#TODO:sort
+    coffees = Coffee.query.filter(
+        db.and_(*sql_query)).limit(50).all()  # TODO:sort
     return flask.jsonify({"result": True, "data": convert_coffees_to_json(coffees)})
 
 
@@ -177,9 +177,15 @@ def get_reviews():
         user = User.query.get(reviewer_id)
         if user is not None:
             reviews = user.reviews
-            return flask.jsonify({"result": True, "data": convert_reviews_to_json(reviews)})
+            data = convert_reviews_to_json(
+                reviews, with_user=current_user.is_active)
+            return flask.jsonify({"result": True, "data": data})
+    else:
+        reviews = Review.query.limit(50).all()
+        return flask.jsonify({"result": True, "data": convert_reviews_to_json(reviews, with_user=current_user.is_active)})
     return flask.jsonify({"result": False, "data": None})
-#TODO:sort
+# TODO:sort
+
 
 @app.route("/reviews", methods=['POST'])
 @login_required
