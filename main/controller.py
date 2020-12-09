@@ -81,6 +81,11 @@ def login():
     else:
         return flask.jsonify({"result": False, "message": "ユーザー("+username+")のパスワードが間違っています"})
 
+@app.route('/auth/logout')
+@login_required
+def logout():
+    logout_user()
+    return flask.jsonify({"result":True,"message": "ログアウトしました"})
 
 @app.route("/auth", methods=['GET'])
 def auth():
