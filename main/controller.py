@@ -117,12 +117,12 @@ def get_coffees():
         if current_user.is_authenticated and dripper_id is current_user.id:
             sql_query.append(Coffee.dripper_id == dripper_id)
         else:
-            return flask.jsonify({"result": False, "message": "ログインしてください"})
+            return flask.jsonify({"result": False, "message": "ログインしてください"}),401
     if drinker_id is not None:
         if current_user.is_authenticated and drinker_id is current_user.id:
             sql_query.append(Coffee.drinker.any(id=drinker_id))
         else:
-            return flask.jsonify({"result": False, "message": "ログインしてください"})
+            return flask.jsonify({"result": False, "message": "ログインしてください"}),401
     if bean_id is not None:
         sql_query.append(Coffee.bean_id == bean_id)
     if has_review == "true":
@@ -134,12 +134,18 @@ def get_coffees():
     return flask.jsonify({"result": True, "data": convert_coffees_to_json(coffees)})
 
 
+@app.route("/coffees/<int:id>", methods=['GET'])
+def get_coffee(id):
+    coffee = Coffee.query.get(id)
+    return flask.jsonify({"result": True, "data": convert_coffee_to_json(coffee)})
+
+
 @app.route("/coffees", methods=['POST'])
 @login_required
 def create_coffee():
     form_data = flask.request.json
     if current_user.id != form_data.get('dripperId'):
-        return flask.jsonify({"result": False, "message": "ユーザが不正です"})
+        return flask.jsonify({"result": False, "message": "ユーザが不正です"}),401
     bean_id = form_data.get('beanId')
     dripper_id = current_user.id
     extraction_time = form_data.get('extractionTime')
@@ -176,22 +182,27 @@ def get_reviews():
 @app.route("/reviews", methods=['POST'])
 @login_required
 def create_review():
-    form_data = flask.request.json
+    try:
+        form_data = flask.request.json
+        if current_user.id != form_data.get('reviewerId'):
+            print(current_user.id, " : ", form_data.get('reviewerId'))
+            return flask.jsonify({"result": False, "message": "ユーザが不正です"}), 401
+        bitterness = form_data.get('bitterness')
+        coffee_id = form_data.get('coffeeId')
+        feeling = form_data.get('feeling')
+        situation = form_data.get('situation')
+        strongness = form_data.get('strongness')
+        reviewer_id = current_user.id
+        want_repeat = form_data.get('wantRepeat')
 
-    bitterness = form_data.get('bitterness')
-    coffee_id = form_data.get('coffee_id')
-    feeling = form_data.get('feeling')
-    reviewer_id = current_user.id
-    situation = form_data.get('situation')
-    strongness = form_data.get('strongness')
-    want_repeat = form_data.get('wantRepeat')
-
-    new_review = Review(bitterness=bitterness, want_repeat=want_repeat, coffee_id=coffee_id,
-                        situation=situation, strongness=strongness, feeling=feeling, reviewer_id=reviewer_id)
-    db.session.add(new_review)
-    db.session.commit()
-    return flask.jsonify({"result": True, "message": "レビューを作成しました。", "data": convert_review_to_json(new_review)})
-# TODO: queries,limit
+        new_review = Review(bitterness=bitterness, want_repeat=want_repeat, coffee_id=coffee_id,
+                            situation=situation, strongness=strongness, feeling=feeling, reviewer_id=reviewer_id)
+                            # TODO:idValidReview??
+        db.session.add(new_review)
+        db.session.commit()
+        return flask.jsonify({"result": True, "message": "レビューを作成しました。", "data": convert_review_to_json(new_review)})
+    except Exception as e:
+        return flask.jsonify({"result": False, "message": "予期せぬエラーが発生しました : {}".format(e)}),500
 
 
 @app.route("/beans", methods=['GET'])
