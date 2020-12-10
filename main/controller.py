@@ -81,11 +81,13 @@ def login():
     else:
         return flask.jsonify({"result": False, "message": "ユーザー("+username+")のパスワードが間違っています"})
 
+
 @app.route('/auth/logout')
 @login_required
 def logout():
     logout_user()
-    return flask.jsonify({"result":True,"message": "ログアウトしました"})
+    return flask.jsonify({"result": True, "message": "ログアウトしました"})
+
 
 @app.route("/auth", methods=['GET'])
 def auth():
@@ -163,17 +165,28 @@ def create_coffee():
     powder_amount = form_data.get("powderAmount")
     water_amount = form_data.get('waterAmount')
     water_temperature = form_data.get('waterTemperature')
+    if extraction_time > 10 or extraction_time <= 0 or\
+            powder_amount > 20 or powder_amount <= 0 or \
+            water_amount <= 0 or water_amount > 500 or\
+            water_temperature > 100 or water_temperature < 0:
+        return flask.jsonify({"result": False, "message": "入力が不正です"})
     new_coffee = Coffee(bean_id=bean_id,  dripper_id=dripper_id,
                         extraction_time=extraction_time, extraction_method_id=extraction_method_id,
                         mesh_id=mesh_id, memo=memo, powder_amount=powder_amount, water_amount=water_amount, water_temperature=water_temperature, )
     db.session.add(new_coffee)
-    # TODO:Flaskでもバリデーションnot null & is number
-    # 重複と空白削除
-    for drinker_id in [id for id in list(set(form_data.get('drinkerIds'))) if id != '' and id != None]:
+    drinkers = []
+    for id in form_data.get('drinkerIds'):
+        if id != None and id != "":
+            drinkers.append(int(id))
+
+    drinkers = list(set(drinkers))
+    if len(drinkers) == 0:
+        return flask.jsonify({"result": False, "mesage": "飲む人を指定してください"})
+    for drinker_id in drinkers:
         drinker = User.query.filter_by(id=drinker_id).one_or_none()
         new_coffee.drinker.append(drinker)
     db.session.commit()
-    return flask.jsonify({"result": True, "message": "コーヒーを作成しました。", "data": convert_coffee_to_json(new_coffee)})
+    return flask.jsonify({"result": True, "message": "コーヒーを作成しました。", "data": convert_coffee_to_json(new_coffee, True)})
 
 
 @app.route("/reviews", methods=['GET'])

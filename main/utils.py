@@ -9,7 +9,7 @@ def convert_coffees_to_json(coffees, with_user=False):
     return json
 
 
-def convert_coffee_to_json(coffee, with_user: False):
+def convert_coffee_to_json(coffee, with_user=False):
     return{
         "powderAmount": coffee.powder_amount,
         "id": coffee.id,
