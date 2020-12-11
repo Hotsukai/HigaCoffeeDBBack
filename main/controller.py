@@ -250,3 +250,16 @@ def get_beans():
 @ app.route("/extraction_methods", methods=['GET'])
 def get_extraction_methods():
     return flask.jsonify({"result": True, "data": EXTRACTION_METHOD})
+
+
+@app.route("/data", methods=['GET'])
+def get_data():
+    data = {}
+    for bean in BEAN.values():
+        print("bean", bean)
+        bean_data = {}
+        bean_data["drinkCount"] = 1
+        bean_data["reviewCount"] = 1
+        data[bean["name"] ]= bean_data
+
+    return flask.jsonify({"result": True, "data": data})
