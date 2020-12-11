@@ -213,7 +213,6 @@ def create_review():
     try:
         form_data = flask.request.json
         if current_user.id != form_data.get('reviewerId'):
-            print(current_user.id, " : ", form_data.get('reviewerId'))
             return flask.jsonify({"result": False, "message": "ユーザが不正です"}), 401
         bitterness = form_data.get('bitterness')
         coffee_id = form_data.get('coffeeId')
@@ -222,12 +221,15 @@ def create_review():
         strongness = form_data.get('strongness')
         reviewer_id = current_user.id
         want_repeat = form_data.get('wantRepeat')
-
+        if bitterness > 4 or bitterness < 0 or strongness > 4 or strongness < 0 or situation > 4 or situation < 0 or want_repeat > 3 or want_repeat < 0:
+            return flask.jsonify({"result": False, "message": "入力が不正です"})
         new_review = Review(bitterness=bitterness, want_repeat=want_repeat, coffee_id=coffee_id,
                             situation=situation, strongness=strongness, feeling=feeling, reviewer_id=reviewer_id)
-        # TODO:idValidReview??
+        # TODO すでにレビューを書いている場合拒否
         db.session.add(new_review)
         coffee = Coffee.query.get(coffee_id)
+        if not list(filter(lambda drinker: drinker.id == reviewer_id, coffee.drinker)):
+            return flask.jsonify({"result": False, "message": "このコーヒーへのレビューを書く権利がありません"})
         coffee.reviews.append(new_review)
         db.session.commit()
         return flask.jsonify({"result": True, "message": "レビューを作成しました。", "data": convert_review_to_json(new_review)})
