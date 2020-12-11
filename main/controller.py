@@ -225,11 +225,15 @@ def create_review():
             return flask.jsonify({"result": False, "message": "入力が不正です"})
         new_review = Review(bitterness=bitterness, want_repeat=want_repeat, coffee_id=coffee_id,
                             situation=situation, strongness=strongness, feeling=feeling, reviewer_id=reviewer_id)
-        # TODO すでにレビューを書いている場合拒否
-        db.session.add(new_review)
         coffee = Coffee.query.get(coffee_id)
         if not list(filter(lambda drinker: drinker.id == reviewer_id, coffee.drinker)):
             return flask.jsonify({"result": False, "message": "このコーヒーへのレビューを書く権利がありません"})
+        if list(filter(lambda review: review.reviewer_id == reviewer_id, coffee.reviews)):
+            return flask.jsonify({"result": False, "message": "このコーヒーにはすでにレビューが書かれています"})
+        if len(coffee.reviews) >= len(coffee.drinker):
+            return flask.jsonify({"result": False, "message": "このコーヒーにはすでにレビューが書かれています"})
+
+        db.session.add(new_review)
         coffee.reviews.append(new_review)
         db.session.commit()
         return flask.jsonify({"result": True, "message": "レビューを作成しました。", "data": convert_review_to_json(new_review)})
@@ -238,11 +242,11 @@ def create_review():
         return flask.jsonify({"result": False, "message": "予期せぬエラーが発生しました : {}".format(e)}), 500
 
 
-@app.route("/beans", methods=['GET'])
+@ app.route("/beans", methods=['GET'])
 def get_beans():
     return flask.jsonify({"result": True, "data": BEAN})
 
 
-@app.route("/extraction_methods", methods=['GET'])
+@ app.route("/extraction_methods", methods=['GET'])
 def get_extraction_methods():
     return flask.jsonify({"result": True, "data": EXTRACTION_METHOD})
