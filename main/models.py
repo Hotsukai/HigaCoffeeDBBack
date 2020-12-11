@@ -33,9 +33,6 @@ class Coffee(db.Model):
     reviews = db.relationship("Review", backref="coffees")
     water_amount = db.Column(db.Integer)
     water_temperature = db.Column(db.Integer)
-    
-  
-
 
     def __repr__(self):
         return "Coffee(id={})".format(self.id)
@@ -80,11 +77,43 @@ class Review(db.Model):
 BEAN = {
     1: {
         "id": 1,
-        "name": "ブラジル深煎り"
+        "name": "ブラジル深煎り",
+        "detail":"ビター 421",
     },
     2: {
         "id": 2,
-        "name": "ブラジル中煎り"
+        "name": "ブラジル中煎り",
+        "detail":"No.2 ｾﾐｳｫｯｼｭﾄﾞ 421"
+    }, 
+    3: {
+        "id": 3,
+        "name": "コロンビア深煎り",
+        "detail":"コロンビア ビター 421"
+    },
+    4: {
+        "id": 4,
+        "name": "コロンビア中煎り",
+        "detail":"コロンビア スプレモ 421"
+    }, 
+    5: {
+        "id": 5,
+        "name": "タンザニア深煎り",
+        "detail":"タンザニア ビター 421"
+    },
+    6: {
+        "id": 6,
+        "name": "タンザニア中煎り",
+        "detail":"タンザニア キリマンジャロAA 421"
+    }, 
+    7: {
+        "id": 7,
+        "name": "マンデリン深煎り",
+        "detail":"マンデリン ビター 432"
+    },
+    8: {
+        "id": 8,
+        "name": "マンデリン中煎り",
+        "detail":"マンデリン G/1 432"
     },
 }
 
