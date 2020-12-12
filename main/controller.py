@@ -42,21 +42,23 @@ def create_user():
     profile = form_data.get('profile')
     watchword = form_data.get('watchword')
     if watchword != WATCH_WORD:
-        return flask.jsonify({"message": "合言葉が違います"}), 400
+        print(watchword,WATCH_WORD)
+        return flask.jsonify({"result": False, "message": "合言葉が違います"})
     # TODO:有効な文字列か確認。
     if not username:
-        return flask.jsonify({"message": "ユーザー名は必須です"}), 400
+        return flask.jsonify({"result": False, "message": "ユーザー名は必須です"})
     if not password:
-        return flask.jsonify({"message": "パスワードは必須です"}), 400
+        return flask.jsonify({"result": False, "message": "パスワードは必須です"})
     if User.query.filter_by(name=username).one_or_none():
-        return flask.jsonify({"message": "ユーザー名が利用されています。"}), 400
+        return flask.jsonify({"result": False, "message": "ユーザー名が利用されています。"})
 
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
     user = User(name=username, encrypted_password=hashed_password,
                 profile=profile)
     db.session.add(user)
     db.session.commit()
-    return flask.jsonify({"message": "ユーザー("+username+")を作成しました。"})
+    login_user(user)
+    return flask.jsonify({"result": True, "message": "ユーザー("+username+")を作成しました。", "data": convert_user_to_json(user)})
 
 # TODO:エラーハンドリング
 
@@ -252,14 +254,27 @@ def get_extraction_methods():
     return flask.jsonify({"result": True, "data": EXTRACTION_METHOD})
 
 
-@app.route("/data", methods=['GET'])
-def get_data():
+@app.route("/data/provide", methods=['GET'])
+def get_provide_count():
     data = {}
     for bean in BEAN.values():
         print("bean", bean)
         bean_data = {}
         bean_data["drinkCount"] = 1
         bean_data["reviewCount"] = 1
-        data[bean["name"] ]= bean_data
+        bean_data["bitterness"] = 2
+        bean_data["situation"] = 2
+        bean_data["bean_id"] = bean["id"]
+        data[bean["name"]] = bean_data
 
     return flask.jsonify({"result": True, "data": data})
+
+
+@app.route("/data/bitterness")
+def get_bitterness():
+    return
+
+
+@app.route("/data/positioning_bean")
+def get_position():
+    return
