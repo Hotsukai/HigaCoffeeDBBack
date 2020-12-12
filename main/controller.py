@@ -42,7 +42,7 @@ def create_user():
     profile = form_data.get('profile')
     watchword = form_data.get('watchword')
     if watchword != WATCH_WORD:
-        print(watchword,WATCH_WORD)
+        print(watchword, WATCH_WORD)
         return flask.jsonify({"result": False, "message": "合言葉が違います"})
     # TODO:有効な文字列か確認。
     if not username:
@@ -198,6 +198,7 @@ def get_reviews():
         user = User.query.get(reviewer_id)
         if user is not None:
             reviews = user.reviews
+            reviews.reverse()
             data = convert_reviews_to_json(
                 reviews, with_user=current_user.is_active)
             return flask.jsonify({"result": True, "data": data})
