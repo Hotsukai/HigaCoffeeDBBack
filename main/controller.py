@@ -310,6 +310,29 @@ def get_bitterness(bean_id):
     return flask.jsonify({"result": True, "data": strongness_data})
 
 
-@ app.route("/data/positioning_bean")
+@ app.route("/data/bean_position")
 def get_position():
-    return
+    position_data = {}
+    for bean_id in BEAN.keys():
+        avg = db.session.query(
+            db.func.avg(Review.bitterness).label('bitterness'),
+            db.func.avg(Review.strongness).label('strongness'),
+            db.func.avg(Review.situation).label('situation'),
+            db.func.avg(Review.want_repeat).label('want_repeat')
+        ).filter(Coffee.bean_id == bean_id)\
+            .one_or_none()._asdict()
+        avg_bitterness = float(
+            avg['bitterness']) if avg['bitterness'] else None
+        avg_strongness = float(
+            avg['strongness']) if avg['strongness'] else None
+        avg_situation = float(avg['situation']) if avg['situation'] else None
+        avg_want_repeat = float(
+            avg['want_repeat']) if avg['want_repeat'] else None
+        position_data[bean_id] = {
+            'avg_bitterness': avg_bitterness,
+            'avg_strongness': avg_strongness,
+            'avg_situation': avg_situation,
+            'avg_want_repeat': avg_want_repeat,
+
+        }
+    return flask.jsonify({"result": True, "data": position_data})
