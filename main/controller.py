@@ -283,15 +283,29 @@ def get_provide_count():
                     Review.reviewer_id == current_user.id))\
                 .count()
         data[bean["name"]] = bean_data
-
     return flask.jsonify({"result": True, "data": data})
 
 
-@app.route("/data/bitterness")
-def get_bitterness():
-    return
+@app.route("/data/strongness/<int:bean_id>")
+def get_bitterness(bean_id):
+    strongness_data = {}
+    for strongness in range(1, 5):
+        avg_ex_time = db.session.query(
+            db.func.avg(Coffee.extraction_time).label('average')).filter(
+            db.and_(
+                Coffee.bean_id == bean_id,
+                Review.strongness == strongness)).all()
+        avg_ex_time = avg_ex_time[0]._asdict()
+        avg_ex_time = float(
+            avg_ex_time["average"]) if avg_ex_time["average"] else None
+        print(avg_ex_time)
+        strongness_data[strongness] = {
+            "average_extraction_time": avg_ex_time
+        }
+    print(strongness_data)
+    return flask.jsonify({"result": True, "data": strongness_data})
 
 
-@app.route("/data/positioning_bean")
+@ app.route("/data/positioning_bean")
 def get_position():
     return
