@@ -266,23 +266,24 @@ def get_provide_count():
     data = {}
     for bean in BEAN.values():
         print("bean", bean)
-        bean_data = {}
-        bean_data["drinkCount"] = Coffee.query.filter_by(
+        bean_data = {"id": bean["id"], "name": bean["name"]}
+
+        bean_data["dripCount"] = Coffee.query.filter_by(
             bean_id=bean["id"]).count()
         bean_data["reviewCount"] = Review.query.filter(
             Review.coffee.has(bean_id=bean["id"])).count()
         if current_user.is_active:
-            bean_data["usersDrinkCount"] = Coffee.query.filter(
+            bean_data["usersDripCount"] = Coffee.query.filter(
                 db.and_(
                     Coffee.bean_id == bean["id"],
-                    Coffee.drinker.any(id=current_user.id)))\
+                    Coffee.dripper_id == current_user.id))\
                 .count()
             bean_data["usersReviewCount"] = Review.query.filter(
                 db.and_(
                     Review.coffee.has(bean_id=bean["id"]),
                     Review.reviewer_id == current_user.id))\
                 .count()
-        data[bean["name"]] = bean_data
+        data[bean["id"]] = bean_data
     return flask.jsonify({"result": True, "data": data})
 
 
