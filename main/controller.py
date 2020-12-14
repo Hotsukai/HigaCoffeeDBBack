@@ -191,6 +191,8 @@ def create_coffee():
     db.session.commit()
     return flask.jsonify({"result": True, "message": "コーヒーを作成しました。", "data": convert_coffee_to_json(new_coffee, True)})
 
+# TODO:ページネーション
+
 
 @app.route("/reviews", methods=['GET'])
 def get_reviews():
@@ -198,7 +200,6 @@ def get_reviews():
     reviewer_id = flask.request.args.get('reviewer', type=int)
     bean_ids = flask.request.args.get('beans')
     bean_ids = bean_ids.split(",") if bean_ids else None
-    print("bean_ids : ", bean_ids, "reviewer_id : ", reviewer_id)
     if reviewer_id:
         user = User.query.get(reviewer_id)
         if user is not None:
@@ -266,11 +267,21 @@ def get_provide_count():
     for bean in BEAN.values():
         print("bean", bean)
         bean_data = {}
-        bean_data["drinkCount"] = 1
-        bean_data["reviewCount"] = 1
-        bean_data["bitterness"] = 2
-        bean_data["situation"] = 2
-        bean_data["bean_id"] = bean["id"]
+        bean_data["drinkCount"] = Coffee.query.filter_by(
+            bean_id=bean["id"]).count()
+        bean_data["reviewCount"] = Review.query.filter(
+            Review.coffee.has(bean_id=bean["id"])).count()
+        if current_user.is_active:
+            bean_data["usersDrinkCount"] = Coffee.query.filter(
+                db.and_(
+                    Coffee.bean_id == bean["id"],
+                    Coffee.drinker.any(id=current_user.id)))\
+                .count()
+            bean_data["usersReviewCount"] = Review.query.filter(
+                db.and_(
+                    Review.coffee.has(bean_id=bean["id"]),
+                    Review.reviewer_id == current_user.id))\
+                .count()
         data[bean["name"]] = bean_data
 
     return flask.jsonify({"result": True, "data": data})
