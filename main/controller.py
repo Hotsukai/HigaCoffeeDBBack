@@ -5,6 +5,7 @@ from main import app, db, bcrypt, login_manager, WATCH_WORD, ALLOW_ORIGIN
 from main.models import Coffee, User, Review, BEAN, EXTRACTION_METHOD, MESH
 from main.utils import *
 from flask_login import login_user, logout_user, login_required, current_user
+# TODO:テスト書く
 
 
 @app.after_request
@@ -142,7 +143,7 @@ def get_coffees():
         sql_query.append(Coffee.bean_id == bean_id)
 
     coffees = Coffee.query.filter(
-        db.and_(*sql_query)).order_by(db.desc(Coffee.created_at)).limit(50).all()  # TODO:sort
+        db.and_(*sql_query)).order_by(db.desc(Coffee.created_at)).limit(50).all()
     return flask.jsonify({"result": True, "data": convert_coffees_to_json(coffees)})
 
 
@@ -193,20 +194,24 @@ def create_coffee():
 
 @app.route("/reviews", methods=['GET'])
 def get_reviews():
+    sql_query = []
     reviewer_id = flask.request.args.get('reviewer', type=int)
-    if reviewer_id is not None:
+    bean_ids = flask.request.args.get('beans')
+    bean_ids = bean_ids.split(",") if bean_ids else None
+    print("bean_ids : ", bean_ids, "reviewer_id : ", reviewer_id)
+    if reviewer_id:
         user = User.query.get(reviewer_id)
         if user is not None:
-            reviews = user.reviews
-            reviews.reverse()
-            data = convert_reviews_to_json(
-                reviews, with_user=current_user.is_active)
-            return flask.jsonify({"result": True, "data": data})
-    else:
-        reviews = Review.query.order_by(
-            db.desc(Review.created_at)).limit(50).all()
-        return flask.jsonify({"result": True, "data": convert_reviews_to_json(reviews, with_user=current_user.is_active)})
-    return flask.jsonify({"result": False, "data": None})
+            sql_query.append(Review.reviewer.has(id=reviewer_id))
+    if bean_ids:
+        bean_query = []
+        for bean_id in bean_ids:
+            bean_query.append(Review.coffee.has(bean_id=bean_id))
+        sql_query.append(db.or_(*bean_query))
+    reviews = Review.query.filter(
+        db.and_(*sql_query)).order_by(db.desc(Review.created_at)).limit(50).all()
+
+    return flask.jsonify({"result": True, "data": convert_reviews_to_json(reviews, with_user=current_user.is_active)})
 # TODO:sort
 
 

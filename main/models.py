@@ -30,7 +30,7 @@ class Coffee(db.Model):
     mesh_id = db.Column(db.Integer)
     memo = db.Column(db.Text)
     powder_amount = db.Column(db.Integer, nullable=False)
-    reviews = db.relationship("Review", backref="coffees")
+    reviews = db.relationship("Review", back_populates="coffee")
     water_amount = db.Column(db.Integer)
     water_temperature = db.Column(db.Integer)
 
@@ -47,7 +47,7 @@ class User(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     updated_at = db.Column(db.DateTime, nullable=False,
                            default=db.func.now(), onupdate=db.func.now())
-    reviews = db.relationship("Review", backref="users")
+    reviews = db.relationship("Review", back_populates="reviewer")
     drink_coffees = db.relationship("Coffee", secondary="drinkers")
 
     def __repr__(self):
@@ -65,8 +65,10 @@ class Review(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     updated_at = db.Column(db.DateTime, nullable=False,
                            default=db.func.now(), onupdate=db.func.now())
+    coffee = db.relationship("Coffee", back_populates="reviews")
     coffee_id = reviewer_id = db.Column(db.Integer, db.ForeignKey(
         "coffees.id"),  nullable=False)
+    reviewer = db.relationship("User", back_populates="reviews")
     reviewer_id = db.Column(db.Integer, db.ForeignKey(
         "users.id"),  nullable=False)
 
@@ -78,42 +80,42 @@ BEAN = {
     1: {
         "id": 1,
         "name": "ブラジル深煎り",
-        "detail":"ビター 421",
+        "detail": "ビター 421",
     },
     2: {
         "id": 2,
         "name": "ブラジル中煎り",
-        "detail":"No.2 ｾﾐｳｫｯｼｭﾄﾞ 421"
-    }, 
+        "detail": "No.2 ｾﾐｳｫｯｼｭﾄﾞ 421"
+    },
     3: {
         "id": 3,
         "name": "コロンビア深煎り",
-        "detail":"コロンビア ビター 421"
+        "detail": "コロンビア ビター 421"
     },
     4: {
         "id": 4,
         "name": "コロンビア中煎り",
-        "detail":"コロンビア スプレモ 421"
-    }, 
+        "detail": "コロンビア スプレモ 421"
+    },
     5: {
         "id": 5,
         "name": "タンザニア深煎り",
-        "detail":"タンザニア ビター 421"
+        "detail": "タンザニア ビター 421"
     },
     6: {
         "id": 6,
         "name": "タンザニア中煎り",
-        "detail":"タンザニア キリマンジャロAA 421"
-    }, 
+        "detail": "タンザニア キリマンジャロAA 421"
+    },
     7: {
         "id": 7,
         "name": "マンデリン深煎り",
-        "detail":"マンデリン ビター 432"
+        "detail": "マンデリン ビター 432"
     },
     8: {
         "id": 8,
         "name": "マンデリン中煎り",
-        "detail":"マンデリン G/1 432"
+        "detail": "マンデリン G/1 432"
     },
 }
 

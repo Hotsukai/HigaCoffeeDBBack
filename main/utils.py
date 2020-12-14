@@ -38,9 +38,9 @@ def convert_review_to_json(review, with_user=False):
     return {
         "id": review.id,
         "bitterness": review.bitterness,
-        "coffee": convert_coffee_to_json(review.coffees, with_user=with_user),
+        "coffee": convert_coffee_to_json(review.coffee, with_user=with_user),
         "feeling": review.feeling,
-        "reviewer": convert_user_to_json(review.users) if with_user else None,
+        "reviewer": convert_user_to_json(review.reviewer) if with_user else None,
         "situation": review.situation,
         "strongness": review.strongness,
         "wantRepeat": review.want_repeat,
