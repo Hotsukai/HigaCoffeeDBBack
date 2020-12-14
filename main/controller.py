@@ -290,18 +290,23 @@ def get_provide_count():
 def get_bitterness(bean_id):
     strongness_data = {}
     for strongness in range(1, 5):
-        avg_ex_time = db.session.query(
-            db.func.avg(Coffee.extraction_time).label('average')).filter(
+        avg = db.session.query(
+            db.func.avg(Coffee.extraction_time).label('time'),
+            db.func.avg(Coffee.powder_amount).label('powder'),
+            db.func.avg(Coffee.water_amount).label('water')
+        ).filter(
             db.and_(
                 Coffee.bean_id == bean_id,
-                Review.strongness == strongness)).all()
-        avg_ex_time = avg_ex_time[0]._asdict()
-        avg_ex_time = float(
-            avg_ex_time["average"]) if avg_ex_time["average"] else None
-        print(avg_ex_time)
+                Review.strongness == strongness)
+        ).all()
+        avg = avg[0]._asdict()
+        print(avg)
+        avg_ex_time = float(avg["time"]) if avg["time"] else None
+        avg_powder_per_120cc = float(avg["powder"])/float(
+            avg["water"])*120 if avg["water"] and avg["powder"] and float(avg["water"]) != 0 else None
         strongness_data[strongness] = {
-            "average_extraction_time": avg_ex_time
-        }
+            "average_extraction_time": avg_ex_time,
+            "average_powder_amount_per_120cc": avg_powder_per_120cc}
     print(strongness_data)
     return flask.jsonify({"result": True, "data": strongness_data})
 
