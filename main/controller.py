@@ -298,9 +298,8 @@ def get_bitterness(bean_id):
             db.and_(
                 Coffee.bean_id == bean_id,
                 Review.strongness == strongness)
-        ).all()
-        avg = avg[0]._asdict()
-        print(avg)
+        ).one_or_none()._asdict()
+
         avg_ex_time = float(avg["time"]) if avg["time"] else None
         avg_powder_per_120cc = float(avg["powder"])/float(
             avg["water"])*120 if avg["water"] and avg["powder"] and float(avg["water"]) != 0 else None
