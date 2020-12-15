@@ -48,11 +48,15 @@ def create_user():
     # TODO:有効な文字列か確認。
     if not username:
         return flask.jsonify({"result": False, "message": "ユーザー名は必須です"})
+    if len(username) > 30:
+        return flask.jsonify({"result": False, "message": "ユーザー名が長すぎます"})
     if not password:
         return flask.jsonify({"result": False, "message": "パスワードは必須です"})
+    if len(password.encode('utf-8')) > 50:
+        return flask.jsonify({"result": False, "message": "パスワードが長すぎます"})
     if User.query.filter_by(name=username).one_or_none():
         return flask.jsonify({"result": False, "message": "ユーザー名が利用されています。"})
-
+    print(len(password))
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
     user = User(name=username, encrypted_password=hashed_password,
                 profile=profile)
