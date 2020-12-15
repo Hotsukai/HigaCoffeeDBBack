@@ -43,7 +43,6 @@ def create_user():
     profile = form_data.get('profile')
     watchword = form_data.get('watchword')
     if watchword != WATCH_WORD:
-        print(watchword, WATCH_WORD)
         return flask.jsonify({"result": False, "message": "合言葉が違います"})
     # TODO:有効な文字列か確認。
     if not username:
@@ -56,7 +55,6 @@ def create_user():
         return flask.jsonify({"result": False, "message": "パスワードが長すぎます"})
     if User.query.filter_by(name=username).one_or_none():
         return flask.jsonify({"result": False, "message": "ユーザー名が利用されています。"})
-    print(len(password))
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
     user = User(name=username, encrypted_password=hashed_password,
                 profile=profile)
@@ -188,9 +186,11 @@ def create_coffee():
 
     drinkers = list(set(drinkers))
     if len(drinkers) == 0:
-        return flask.jsonify({"result": False, "mesage": "飲む人を指定してください"})
+        return flask.jsonify({"result": False, "message": "飲む人を指定してください"})
     for drinker_id in drinkers:
         drinker = User.query.filter_by(id=drinker_id).one_or_none()
+        if not drinker:
+            return flask.jsonify({"result": False, "message": "飲む人の指定にあやまりがあります"}) 
         new_coffee.drinker.append(drinker)
     db.session.commit()
     return flask.jsonify({"result": True, "message": "コーヒーを作成しました。", "data": convert_coffee_to_json(new_coffee, True)})
@@ -268,7 +268,6 @@ def get_extraction_methods():
 def get_provide_count():
     data = {}
     for bean in BEAN.values():
-        print("bean", bean)
         bean_data = {"id": bean["id"], "name": bean["name"]}
 
         bean_data["dripCount"] = Coffee.query.filter_by(
@@ -310,7 +309,6 @@ def get_bitterness(bean_id):
         strongness_data[strongness] = {
             "average_extraction_time": avg_ex_time,
             "average_powder_amount_per_120cc": avg_powder_per_120cc}
-    print(strongness_data)
     return flask.jsonify({"result": True, "data": strongness_data})
 
 
