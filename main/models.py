@@ -137,6 +137,5 @@ MESH = {
     },
 }
 
-# TODO: seedデータ
 
 migrate = Migrate(app, db)

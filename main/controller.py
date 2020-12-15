@@ -213,7 +213,6 @@ def get_reviews():
         db.and_(*sql_query)).order_by(db.desc(Review.created_at)).limit(50).all()
 
     return flask.jsonify({"result": True, "data": convert_reviews_to_json(reviews, with_user=current_user.is_active)})
-# TODO:sort
 
 
 @app.route("/reviews", methods=['POST'])
