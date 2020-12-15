@@ -190,7 +190,7 @@ def create_coffee():
     for drinker_id in drinkers:
         drinker = User.query.filter_by(id=drinker_id).one_or_none()
         if not drinker:
-            return flask.jsonify({"result": False, "message": "飲む人の指定にあやまりがあります"}) 
+            return flask.jsonify({"result": False, "message": "飲む人の指定にあやまりがあります"})
         new_coffee.drinker.append(drinker)
     db.session.commit()
     return flask.jsonify({"result": True, "message": "コーヒーを作成しました。", "data": convert_coffee_to_json(new_coffee, True)})
@@ -307,8 +307,27 @@ def get_bitterness(bean_id):
         avg_powder_per_120cc = float(avg["powder"])/float(
             avg["water"])*120 if avg["water"] and avg["powder"] and float(avg["water"]) != 0 else None
         strongness_data[strongness] = {
-            "average_extraction_time": avg_ex_time,
-            "average_powder_amount_per_120cc": avg_powder_per_120cc}
+            "averageExtractionTime": avg_ex_time,
+            "averagePowderAmountPer120cc": avg_powder_per_120cc}
+    if current_user.is_active:
+        for strongness in range(1, 5):
+            avg = db.session.query(
+                db.func.avg(Coffee.extraction_time).label('time'),
+                db.func.avg(Coffee.powder_amount).label('powder'),
+                db.func.avg(Coffee.water_amount).label('water')
+            ).filter(
+                db.and_(
+                    Coffee.bean_id == bean_id,
+                    Review.strongness == strongness,
+                    Review.reviewer == current_user)
+            ).one_or_none()._asdict()
+            avg_ex_time = float(avg["time"]) if avg["time"] else None
+            avg_powder_per_120cc = float(avg["powder"])/float(
+                avg["water"])*120 if avg["water"] and avg["powder"] and float(avg["water"]) != 0 else None
+            strongness_data[strongness].update({
+                "usersAverageExtractionTime": avg_ex_time,
+                "usersAveragePowderAmountPer120cc": avg_powder_per_120cc})
+
     return flask.jsonify({"result": True, "data": strongness_data})
 
 
