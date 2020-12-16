@@ -1,12 +1,25 @@
-from logging import log
-from os import name
 import flask
+import datetime
 from main import app, db, bcrypt, login_manager, WATCH_WORD, ALLOW_ORIGIN
 from main.models import Coffee, User, Review, BEAN, EXTRACTION_METHOD, MESH
 from main.utils import *
+from main.config import SECRET_KEY
 from flask_login import login_user, logout_user, login_required, current_user
+from flask_jwt import JWT, jwt_required, current_identity
 # TODO:テスト書く
 
+# def authenticate(username, password):
+#     user = User.query.filter_by(name=username).one_or_none()
+#     if bcrypt.check_password_hash(user.encrypted_password, password):
+#         return user
+
+
+# def identity(payload):
+#     user_id = payload['identity']
+#     return User.query.get(user_id)
+
+
+# jwt = JWT(app, authenticate, identity)
 
 @app.after_request
 def after_request(response):
@@ -16,12 +29,11 @@ def after_request(response):
                          'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods',
                          'GET,PUT,POST,DELETE,OPTIONS')
+    response.headers.add(
+        'Set-Cookie', 'cross-site-cookie=bar; SameSite=None; Secure')
+    print(response.headers)
     return response
 
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.filter_by(id=user_id).one_or_none()
 
 
 @app.route('/')
@@ -81,8 +93,13 @@ def login():
         return flask.jsonify({"result": False, "message": "ユーザー("+username+")は登録されていません"})
 
     if bcrypt.check_password_hash(user.encrypted_password, password):
-        login_user(user)
-        return flask.jsonify({"result": True, "message": "ユーザー("+username+")のログインに成功しました。", "data": convert_user_to_json(user)})
+        exp = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+        encoded = jwt.encode({'name': username, 'exp': exp},
+                             SECRET_KEY, algorithm='HS256')
+        # login_user(user)
+
+        return flask.jsonify({"result": True, "message": "ユーザー("+username+")のログインに成功しました。",
+                              "data": convert_user_to_json(user), 'token': encoded.decode('utf-8')})
     else:
         return flask.jsonify({"result": False, "message": "ユーザー("+username+")のパスワードが間違っています"})
 
