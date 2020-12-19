@@ -1,6 +1,5 @@
 from main import db, app
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin
 from flask_migrate import Migrate
 
 drinkers = db.Table("drinkers",
@@ -38,7 +37,7 @@ class Coffee(db.Model):
         return "Coffee(id={})".format(self.id)
 
 
-class User(db.Model, UserMixin):
+class User(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     name = db.Column(db.Text, nullable=False, unique=True)

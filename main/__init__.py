@@ -4,7 +4,10 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
-from flask_login import LoginManager
+from flask_jwt_extended import (
+    JWTManager, jwt_required, create_access_token,
+    get_jwt_identity
+)
 import os
 from os.path import join, dirname
 from dotenv import load_dotenv
@@ -17,9 +20,8 @@ app.config.from_object('main.config')
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
 CORS(app)
+jwt = JWTManager(app)
 ALLOW_ORIGIN = os.environ.get('ALLOW_ORIGIN')
 WATCH_WORD = os.environ.get("WATCH_WORD")
 import main.controller
