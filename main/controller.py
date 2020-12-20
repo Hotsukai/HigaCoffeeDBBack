@@ -361,9 +361,9 @@ def get_position():
         avg_want_repeat = float(
             avg['want_repeat']) if avg['want_repeat'] else None
         position_data[bean_id] = {
-            'avg_bitterness': avg_bitterness,
-            'avg_strongness': avg_strongness,
-            'avg_situation': avg_situation,
-            'avg_want_repeat': avg_want_repeat,
+            'avgBitterness': avg_bitterness,
+            'avgStrongness': avg_strongness,
+            'avgSituation': avg_situation,
+            'avgWantRepeat': avg_want_repeat,
         }
-        return flask.jsonify({"result": True, "data": position_data})
+    return flask.jsonify({"result": True, "data": position_data})
