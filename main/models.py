@@ -28,7 +28,7 @@ class Coffee(db.Model):
     extraction_method_id = db.Column(db.Integer)
     mesh_id = db.Column(db.Integer)
     memo = db.Column(db.Text)
-    powder_amount = db.Column(db.Integer, nullable=False)
+    powder_amount = db.Column(db.Float, nullable=False)
     reviews = db.relationship("Review", back_populates="coffee")
     water_amount = db.Column(db.Integer)
     water_temperature = db.Column(db.Integer)
@@ -56,10 +56,10 @@ class User(db.Model):
 class Review(db.Model):
     __tablename__ = "reviews"
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    bitterness = db.Column(db.Integer, nullable=False)
-    want_repeat = db.Column(db.Integer, nullable=False)
-    situation = db.Column(db.Integer, nullable=False)
-    strongness = db.Column(db.Integer, nullable=False)
+    bitterness = db.Column(db.Float, nullable=False)
+    want_repeat = db.Column(db.Float, nullable=False)
+    situation = db.Column(db.Float, nullable=False)
+    strongness = db.Column(db.Float, nullable=False)
     feeling = db.Column(db.Text)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     updated_at = db.Column(db.DateTime, nullable=False,

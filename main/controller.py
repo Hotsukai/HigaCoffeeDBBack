@@ -185,7 +185,7 @@ def create_coffee():
     if extraction_time > 10 or extraction_time <= 0 or\
             powder_amount > 20 or powder_amount <= 0 or \
             water_amount <= 0 or water_amount > 500 or\
-            water_temperature > 100 or water_temperature < 0:
+    water_temperature != None and (water_temperature > 100 or water_temperature < 0):
         return flask.jsonify({"result": False, "message": "入力が不正です"})
     new_coffee = Coffee(bean_id=bean_id,  dripper_id=dripper_id,
                         extraction_time=extraction_time, extraction_method_id=extraction_method_id,
@@ -284,7 +284,8 @@ def get_provide_count():
             bean_id=bean["id"]).count()
         bean_data["reviewCount"] = Review.query.filter(
             Review.coffee.has(bean_id=bean["id"])).count()
-        current_user = User.query.filter_by(name=get_jwt_identity()).one_or_none()
+        current_user = User.query.filter_by(
+            name=get_jwt_identity()).one_or_none()
         if current_user:
             bean_data["usersDripCount"] = Coffee.query.filter(
                 db.and_(
