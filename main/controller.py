@@ -66,8 +66,8 @@ def create_user():
                 profile=profile)
     db.session.add(user)
     db.session.commit()
-    # login_user(user)
-    return flask.jsonify({"result": True, "message": "ユーザー("+username+")を作成しました。", "data": convert_user_to_json(user)})
+    access_token = create_access_token(identity=user)
+    return flask.jsonify({"result": True, "message": "ユーザー("+username+")を作成しました。", "data": convert_user_to_json(user),'token': access_token})
 
 # TODO:エラーハンドリング
 
