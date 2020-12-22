@@ -67,7 +67,7 @@ def create_user():
     db.session.add(user)
     db.session.commit()
     access_token = create_access_token(identity=user)
-    return flask.jsonify({"result": True, "message": "ユーザー("+username+")を作成しました。", "data": convert_user_to_json(user),'token': access_token})
+    return flask.jsonify({"result": True, "message": "ユーザー("+username+")を作成しました。", "data": convert_user_to_json(user), 'token': access_token})
 
 # TODO:エラーハンドリング
 
@@ -185,7 +185,7 @@ def create_coffee():
     if extraction_time > 10 or extraction_time <= 0 or\
             powder_amount > 20 or powder_amount <= 0 or \
             water_amount <= 0 or water_amount > 500 or\
-    water_temperature != None and (water_temperature > 100 or water_temperature < 0):
+        water_temperature != None and (water_temperature > 100 or water_temperature < 0):
         return flask.jsonify({"result": False, "message": "入力が不正です"})
     new_coffee = Coffee(bean_id=bean_id,  dripper_id=dripper_id,
                         extraction_time=extraction_time, extraction_method_id=extraction_method_id,
@@ -313,6 +313,7 @@ def get_bitterness(bean_id):
         ).filter(
             db.and_(
                 Coffee.bean_id == bean_id,
+                Review.coffee_id==Coffee.id,
                 Review.strongness == strongness)
         ).one_or_none()._asdict()
         avg_ex_time = float(avg["time"]) if avg["time"] else None
@@ -347,13 +348,15 @@ def get_bitterness(bean_id):
 def get_position():
     position_data = {}
     for bean_id in BEAN.keys():
+        print(bean_id, type(bean_id))
+        query = 'select sum(bitterness) from reviews join coffees on coffees.id=reviews.coffee_id where bean_id='+str(bean_id)
         avg = db.session.query(
             db.func.avg(Review.bitterness).label('bitterness'),
             db.func.avg(Review.strongness).label('strongness'),
             db.func.avg(Review.situation).label('situation'),
             db.func.avg(Review.want_repeat).label('want_repeat')
-        ).filter(Coffee.bean_id == bean_id)\
-            .one_or_none()._asdict()
+        ).filter(Coffee.bean_id == bean_id).filter(Review.coffee_id==Coffee.id ).one_or_none()._asdict()
+        print(avg)
         avg_bitterness = float(
             avg['bitterness']) if avg['bitterness'] else None
         avg_strongness = float(
@@ -366,6 +369,6 @@ def get_position():
             'avgStrongness': avg_strongness,
             'avgSituation': avg_situation,
             'avgWantRepeat': avg_want_repeat,
-            "beanName":BEAN[bean_id]["name"]
+            "beanName": BEAN[bean_id]["name"]
         }
     return flask.jsonify({"result": True, "data": position_data})
