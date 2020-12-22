@@ -366,5 +366,6 @@ def get_position():
             'avgStrongness': avg_strongness,
             'avgSituation': avg_situation,
             'avgWantRepeat': avg_want_repeat,
+            "beanName":BEAN[bean_id]["name"]
         }
     return flask.jsonify({"result": True, "data": position_data})
