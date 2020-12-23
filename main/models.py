@@ -22,7 +22,7 @@ class Coffee(db.Model):
         "users.id"),  nullable=False)
     dripper = db.relationship(
         "User", primaryjoin="Coffee.dripper_id==User.id")
-    drinker = db.relationship(
+    drinkers = db.relationship(
         "User", secondary="drinkers")
     extraction_time = db.Column(db.Integer)
     extraction_method_id = db.Column(db.Integer)

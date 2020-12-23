@@ -15,15 +15,23 @@ def convert_coffee_to_json(coffee, with_user=False):
         "createdAt": coffee.created_at,
         "bean": BEAN[coffee.bean_id],
         "dripper": convert_user_to_json(coffee.dripper) if with_user else None,
+        "drinkers": convert_users_to_json(coffee.drinkers) if with_user else None,
         "extractionTime": coffee.extraction_time,
         "extractionMethod": EXTRACTION_METHOD[coffee.extraction_method_id] if coffee.extraction_method_id else None,
         "mesh": MESH[coffee.mesh_id] if coffee.mesh_id else None,
         "memo": coffee.memo,
         "powderAmount": coffee.powder_amount,
-        "reviewId":[review.id for review in coffee.reviews],
+        "reviewId": [review.id for review in coffee.reviews],
         "waterAmount": coffee.water_amount,
         "waterTemperature": coffee.water_temperature,
     }
+
+
+def convert_users_to_json(users):
+    json = []
+    for user in users:
+        json.append(convert_user_to_json(user))
+    return json
 
 
 def convert_user_to_json(user):

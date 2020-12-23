@@ -146,10 +146,10 @@ def get_coffees():
     if drinker_id is not None:
         if current_user and drinker_id is current_user.id:
             if has_review == "true":
-                sql_query.append(Coffee.drinker.any(id=drinker_id))
+                sql_query.append(Coffee.drinkers.any(id=drinker_id))
                 sql_query.append(Coffee.reviews.any(reviewer_id=drinker_id))
             elif has_review == "false":
-                sql_query.append(Coffee.drinker.any(id=drinker_id))
+                sql_query.append(Coffee.drinkers.any(id=drinker_id))
                 sql_query.append(~ Coffee.reviews.any(reviewer_id=drinker_id))
         else:
             return flask.jsonify({"result": False, "message": "ログインしてください"}), 401
@@ -157,13 +157,13 @@ def get_coffees():
         sql_query.append(Coffee.bean_id == bean_id)
     coffees = Coffee.query.filter(
         db.and_(*sql_query)).order_by(db.desc(Coffee.created_at)).limit(50).all()
-    return flask.jsonify({"result": True, "data": convert_coffees_to_json(coffees)})
+    return flask.jsonify({"result": True, "data": convert_coffees_to_json(coffees,with_user=True)})
 
 
 @app.route("/coffees/<int:id>", methods=['GET'])
 def get_coffee(id):
     coffee = Coffee.query.get(id)
-    return flask.jsonify({"result": True, "data": convert_coffee_to_json(coffee)})
+    return flask.jsonify({"result": True, "data": convert_coffee_to_json(coffee,with_user=True)})
 
 
 @app.route("/coffees", methods=['POST'])
@@ -202,7 +202,7 @@ def create_coffee():
         drinker = User.query.filter_by(id=drinker_id).one_or_none()
         if not drinker:
             return flask.jsonify({"result": False, "message": "飲む人の指定にあやまりがあります"})
-        new_coffee.drinker.append(drinker)
+        new_coffee.drinkers.append(drinker)
     db.session.commit()
     return flask.jsonify({"result": True, "message": "コーヒーを作成しました。", "data": convert_coffee_to_json(new_coffee, True)})
 # TODO:ページネーション
@@ -249,11 +249,11 @@ def create_review():
         new_review = Review(bitterness=bitterness, want_repeat=want_repeat, coffee_id=coffee_id,
                             situation=situation, strongness=strongness, feeling=feeling, reviewer_id=reviewer_id)
         coffee = Coffee.query.get(coffee_id)
-        if not list(filter(lambda drinker: drinker.id == reviewer_id, coffee.drinker)):
+        if not list(filter(lambda drinker: drinker.id == reviewer_id, coffee.drinkers)):
             return flask.jsonify({"result": False, "message": "このコーヒーへのレビューを書く権利がありません"})
         if list(filter(lambda review: review.reviewer_id == reviewer_id, coffee.reviews)):
             return flask.jsonify({"result": False, "message": "このコーヒーにはすでにレビューが書かれています"})
-        if len(coffee.reviews) >= len(coffee.drinker):
+        if len(coffee.reviews) >= len(coffee.drinkers):
             return flask.jsonify({"result": False, "message": "このコーヒーにはすでにレビューが書かれています"})
         db.session.add(new_review)
         coffee.reviews.append(new_review)
