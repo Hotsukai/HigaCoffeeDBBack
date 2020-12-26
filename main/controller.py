@@ -137,7 +137,6 @@ def get_coffees():
     drinker_id = flask.request.args.get('drinker_id', type=int)
     bean_id = flask.request.args.get('bean_id', type=int)
     current_user = User.query.filter_by(name=get_jwt_identity()).one_or_none()
-    print("current_user", current_user)
     if dripper_id is not None:
         if current_user and dripper_id is current_user.id:
             sql_query.append(Coffee.dripper_id == dripper_id)
@@ -157,13 +156,13 @@ def get_coffees():
         sql_query.append(Coffee.bean_id == bean_id)
     coffees = Coffee.query.filter(
         db.and_(*sql_query)).order_by(db.desc(Coffee.created_at)).limit(50).all()
-    return flask.jsonify({"result": True, "data": convert_coffees_to_json(coffees,with_user=True)})
+    return flask.jsonify({"result": True, "data": convert_coffees_to_json(coffees, with_user=True)})
 
 
 @app.route("/coffees/<int:id>", methods=['GET'])
 def get_coffee(id):
     coffee = Coffee.query.get(id)
-    return flask.jsonify({"result": True, "data": convert_coffee_to_json(coffee,with_user=True)})
+    return flask.jsonify({"result": True, "data": convert_coffee_to_json(coffee, with_user=True)})
 
 
 @app.route("/coffees", methods=['POST'])
@@ -186,7 +185,7 @@ def create_coffee():
     if extraction_time > 10 or extraction_time <= 0 or\
             powder_amount > 20 or powder_amount <= 0 or \
             water_amount <= 0 or water_amount > 500 or\
-        water_temperature != None and (water_temperature > 100 or water_temperature < 0):
+    water_temperature != None and (water_temperature > 100 or water_temperature < 0):
         return flask.jsonify({"result": False, "message": "入力が不正です"})
     new_coffee = Coffee(bean_id=bean_id,  dripper_id=dripper_id,
                         extraction_time=extraction_time, extraction_method_id=extraction_method_id,
@@ -304,7 +303,7 @@ def get_provide_count():
 
 @app.route("/data/strongness/<int:bean_id>")
 @jwt_optional
-def get_bitterness(bean_id):
+def get_strongness(bean_id):
     strongness_data = {}
     for strongness in range(1, 5):
         avg = db.session.query(
@@ -315,7 +314,8 @@ def get_bitterness(bean_id):
             db.and_(
                 Coffee.bean_id == bean_id,
                 Review.coffee_id == Coffee.id,
-                Review.strongness == strongness)
+                strongness - 1 <= Review.strongness,
+                Review.strongness < strongness)
         ).one_or_none()._asdict()
         avg_ex_time = float(avg["time"]) if avg["time"] else None
         avg_powder_per_120cc = float(avg["powder"])/float(
@@ -333,7 +333,9 @@ def get_bitterness(bean_id):
             ).filter(
                 db.and_(
                     Coffee.bean_id == bean_id,
-                    Review.strongness == strongness,
+                    Review.coffee_id == Coffee.id,
+                    strongness - 1 <= Review.strongness,
+                    Review.strongness < strongness,
                     Review.reviewer == current_user)
             ).one_or_none()._asdict()
             avg_ex_time = float(avg["time"]) if avg["time"] else None
@@ -349,14 +351,12 @@ def get_bitterness(bean_id):
 def get_position():
     position_data = {}
     for bean_id in BEAN.keys():
-        print(bean_id, type(bean_id))
         avg = db.session.query(
             db.func.avg(Review.bitterness).label('bitterness'),
             db.func.avg(Review.strongness).label('strongness'),
             db.func.avg(Review.situation).label('situation'),
             db.func.avg(Review.want_repeat).label('want_repeat')
         ).filter(Coffee.bean_id == bean_id).filter(Review.coffee_id == Coffee.id).one_or_none()._asdict()
-        print(avg)
         avg_bitterness = float(
             avg['bitterness']) if avg['bitterness'] else None
         avg_strongness = float(
