@@ -185,7 +185,7 @@ def create_coffee():
     if extraction_time > 10 or extraction_time <= 0 or\
             powder_amount > 20 or powder_amount <= 0 or \
             water_amount <= 0 or water_amount > 500 or\
-    water_temperature != None and (water_temperature > 100 or water_temperature < 0):
+        water_temperature != None and (water_temperature > 100 or water_temperature < 0):
         return flask.jsonify({"result": False, "message": "入力が不正です"})
     new_coffee = Coffee(bean_id=bean_id,  dripper_id=dripper_id,
                         extraction_time=extraction_time, extraction_method_id=extraction_method_id,
@@ -348,6 +348,7 @@ def get_strongness(bean_id):
 
 
 @ app.route("/data/bean_position")
+@jwt_optional
 def get_position():
     position_data = {}
     for bean_id in BEAN.keys():
@@ -371,4 +372,30 @@ def get_position():
             'avgWantRepeat': avg_want_repeat,
             "beanName": BEAN[bean_id]["name"]
         }
+    current_user = User.query.filter_by(name=get_jwt_identity()).one_or_none()
+    if current_user:
+        for bean_id in BEAN.keys():
+            avg = db.session.query(
+                db.func.avg(Review.bitterness).label('bitterness'),
+                db.func.avg(Review.strongness).label('strongness'),
+                db.func.avg(Review.situation).label('situation'),
+                db.func.avg(Review.want_repeat).label('want_repeat')
+            ).filter(Coffee.bean_id == bean_id)\
+                .filter(Review.coffee_id == Coffee.id)\
+                .filter(Review.reviewer_id == current_user.id)\
+                .one_or_none()._asdict()
+            avg_bitterness = float(
+                avg['bitterness']) if avg['bitterness'] else None
+            avg_strongness = float(
+                avg['strongness']) if avg['strongness'] else None
+            avg_situation = float(
+                avg['situation']) if avg['situation'] else None
+            avg_want_repeat = float(
+                avg['want_repeat']) if avg['want_repeat'] else None
+            position_data[bean_id].update({
+                'usersAvgBitterness': avg_bitterness,
+                'usersAvgStrongness': avg_strongness,
+                'usersAvgSituation': avg_situation,
+                'usersAvgWantRepeat': avg_want_repeat,
+            })
     return flask.jsonify({"result": True, "data": position_data})
