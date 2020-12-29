@@ -1,15 +1,13 @@
 import flask
-from flask import Blueprint
-from main import app, db, bcrypt, jwt,WATCH_WORD
+from main import  db, bcrypt, jwt,WATCH_WORD
 from main.utils import *
-
 from flask_jwt_extended import (
     jwt_required, create_access_token,
     get_jwt_identity, jwt_optional
 )
 from main.models import User
 
-app = Blueprint('users_controller', __name__)
+app = flask.Blueprint('users_controller', __name__)
 
 @jwt.user_identity_loader
 def user_identity_lookup(user):
