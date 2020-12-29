@@ -1,7 +1,6 @@
 import flask
 from main import db, bcrypt, jwt
 from main.models import Coffee, User, Review
-from main.utils import *
 from flask_jwt_extended import (
     jwt_required,
     get_jwt_identity, jwt_optional
@@ -27,7 +26,7 @@ def get_reviews():
         sql_query.append(db.or_(*bean_query))
     reviews = Review.query.filter(
         db.and_(*sql_query)).order_by(db.desc(Review.created_at)).limit(50).all()
-    return flask.jsonify({"result": True, "data": convert_reviews_to_json(reviews, with_user=get_jwt_identity())})
+    return flask.jsonify({"result": True, "data": [review.to_json(with_user=get_jwt_identity()) for review in reviews]})
 
 
 @app.route("/reviews", methods=['POST'])
@@ -59,7 +58,7 @@ def create_review():
         db.session.add(new_review)
         coffee.reviews.append(new_review)
         db.session.commit()
-        return flask.jsonify({"result": True, "message": "レビューを作成しました。", "data": convert_review_to_json(new_review)})
+        return flask.jsonify({"result": True, "message": "レビューを作成しました。", "data": new_review.to_json()})
     except Exception as e:
         print(e)
         return flask.jsonify({"result": False, "message": "予期せぬエラーが発生しました : {}".format(e)}), 500

@@ -1,6 +1,5 @@
 import flask
 from main import  db, bcrypt, jwt,WATCH_WORD
-from main.utils import *
 from flask_jwt_extended import (
     jwt_required, create_access_token,
     get_jwt_identity, jwt_optional
@@ -46,7 +45,7 @@ def create_user():
     db.session.add(user)
     db.session.commit()
     access_token = create_access_token(identity=user)
-    return flask.jsonify({"result": True, "message": "ユーザー("+username+")を作成しました。", "data": convert_user_to_json(user), 'token': access_token})
+    return flask.jsonify({"result": True, "message": "ユーザー("+username+")を作成しました。", "data":user.to_json(), 'token': access_token})
 
 # TODO:エラーハンドリング
 
@@ -69,7 +68,7 @@ def login():
         access_token = create_access_token(identity=user)
 
         return flask.jsonify({"result": True, "message": "ユーザー("+username+")のログインに成功しました。",
-                              "data": convert_user_to_json(user), 'token': access_token})
+                              "data":user.to_json(), 'token': access_token})
     else:
         return flask.jsonify({"result": False, "message": "ユーザー("+username+")のパスワードが間違っています"})
 
@@ -86,7 +85,7 @@ def login():
 def auth():
     current_user = User.query.filter_by(name=get_jwt_identity()).one_or_none()
     if current_user:
-        return flask.jsonify({"result": True, "data": convert_user_to_json(current_user), "message": "現在のユーザーです"})
+        return flask.jsonify({"result": True, "data": current_user.to_json(), "message": "現在のユーザーです"})
     else:
         return flask.jsonify({"result": False, "data": None, "message": "ログインされていません"})
 

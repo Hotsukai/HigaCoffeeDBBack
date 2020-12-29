@@ -2,7 +2,6 @@ import flask
 import datetime
 from main import app, db
 from main.models import BEAN, EXTRACTION_METHOD, MESH
-from main.utils import *
 from main.controllers import (
     users_controller, coffees_controller, reviews_controller, data_controller)
 

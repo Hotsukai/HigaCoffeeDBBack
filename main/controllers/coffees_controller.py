@@ -1,7 +1,6 @@
 import flask
 from main import db, jwt
 from main.models import Coffee, User
-from main.utils import *
 from flask_jwt_extended import (
     jwt_required,
     get_jwt_identity, jwt_optional
@@ -37,13 +36,13 @@ def get_coffees():
         sql_query.append(Coffee.bean_id == bean_id)
     coffees = Coffee.query.filter(
         db.and_(*sql_query)).order_by(db.desc(Coffee.created_at)).limit(50).all()
-    return flask.jsonify({"result": True, "data": convert_coffees_to_json(coffees, with_user=True)})
+    return flask.jsonify({"result": True, "data": [coffee.to_json(with_user=True) for coffee in coffees]})
 
 
 @app.route("/coffees/<int:id>", methods=['GET'])
 def get_coffee(id):
     coffee = Coffee.query.get(id)
-    return flask.jsonify({"result": True, "data": convert_coffee_to_json(coffee, with_user=True)})
+    return flask.jsonify({"result": True, "data": coffee.to_json(with_user=True)})
 
 
 @app.route("/coffees", methods=['POST'])
@@ -66,7 +65,7 @@ def create_coffee():
     if extraction_time > 10 or extraction_time <= 0 or\
             powder_amount > 20 or powder_amount <= 0 or \
             water_amount <= 0 or water_amount > 500 or\
-    water_temperature != None and (water_temperature > 100 or water_temperature < 0):
+        water_temperature != None and (water_temperature > 100 or water_temperature < 0):
         return flask.jsonify({"result": False, "message": "入力が不正です"})
     new_coffee = Coffee(bean_id=bean_id,  dripper_id=dripper_id,
                         extraction_time=extraction_time, extraction_method_id=extraction_method_id,
@@ -85,5 +84,5 @@ def create_coffee():
             return flask.jsonify({"result": False, "message": "飲む人の指定にあやまりがあります"})
         new_coffee.drinkers.append(drinker)
     db.session.commit()
-    return flask.jsonify({"result": True, "message": "コーヒーを作成しました。", "data": convert_coffee_to_json(new_coffee, True)})
+    return flask.jsonify({"result": True, "message": "コーヒーを作成しました。", "data": new_coffee.to_json(True)})
 # TODO:ページネーション
