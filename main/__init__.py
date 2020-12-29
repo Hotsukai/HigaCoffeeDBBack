@@ -36,4 +36,4 @@ def after_request(response):
                          'GET,PUT,POST,DELETE,OPTIONS')
     return response
 
-import main.controller
+import main.controllers.controller
