@@ -22,7 +22,7 @@ class Coffee(db.Model):
         "users.id"),  nullable=False)
     dripper = db.relationship(
         "User", primaryjoin="Coffee.dripper_id==User.id")
-    drinker = db.relationship(
+    drinkers = db.relationship(
         "User", secondary="drinkers")
     extraction_time = db.Column(db.Integer)
     extraction_method_id = db.Column(db.Integer)
@@ -35,6 +35,23 @@ class Coffee(db.Model):
 
     def __repr__(self):
         return "Coffee(id={})".format(self.id)
+
+    def to_json(self, with_user=False):
+        return{
+            "id": self.id,
+            "createdAt": self.created_at,
+            "bean": BEAN[self.bean_id],
+            "dripper": self.dripper.to_json() if with_user else None,
+            "drinkers": [drinker.to_json() for drinker in self.drinkers] if with_user else None,
+            "extractionTime": self.extraction_time,
+            "extractionMethod": EXTRACTION_METHOD[self.extraction_method_id] if self.extraction_method_id else None,
+            "mesh": MESH[self.mesh_id] if self.mesh_id else None,
+            "memo": self.memo,
+            "powderAmount": self.powder_amount,
+            "reviewId": [review.id for review in self.reviews],
+            "waterAmount": self.water_amount,
+            "waterTemperature": self.water_temperature,
+        }
 
 
 class User(db.Model):
@@ -51,6 +68,13 @@ class User(db.Model):
 
     def __repr__(self):
         return "User(id={}, name={})".format(self.id, self.name)
+
+    def to_json(self):
+        return {"id": self.id,
+                "name": self.name,
+                "profile": self.profile,
+                "created_at": self.created_at,
+                "updated_at": self.updated_at}
 
 
 class Review(db.Model):
@@ -73,6 +97,20 @@ class Review(db.Model):
 
     def __repr__(self):
         return "Review(id={}, feeling{})".format(self.id, self.feeling)
+
+    def to_json(self, with_user=False):
+        return {
+            "id": self.id,
+            "bitterness": self.bitterness,
+            "coffee": self.coffee.to_json(with_user=with_user),
+            "feeling": self.feeling,
+            "reviewer": self.reviewer.to_json() if with_user else None,
+            "situation": self.situation,
+            "strongness": self.strongness,
+            "wantRepeat": self.want_repeat,
+            "createdAt": self.created_at,
+            "updatedAt": self.updated_at,
+        }
 
 
 BEAN = {
