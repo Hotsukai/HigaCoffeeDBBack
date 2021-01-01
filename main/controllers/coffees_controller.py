@@ -40,9 +40,10 @@ def get_coffees():
 
 
 @app.route("/coffees/<int:id>", methods=['GET'])
+@jwt_optional
 def get_coffee(id):
     coffee = Coffee.query.get(id)
-    return flask.jsonify({"result": True, "data": coffee.to_json(with_user=True)})
+    return flask.jsonify({"result": True, "data": coffee.to_json(with_user=get_jwt_identity())})
 
 
 @app.route("/coffees", methods=['POST'])

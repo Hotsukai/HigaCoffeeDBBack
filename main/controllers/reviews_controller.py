@@ -29,6 +29,14 @@ def get_reviews():
     return flask.jsonify({"result": True, "data": [review.to_json(with_user=get_jwt_identity()) for review in reviews]})
 
 
+@app.route("/reviews/<int:id>", methods=['GET'])
+@jwt_optional
+def get_review(id):
+    review = Review.query.get(id)
+    return flask.jsonify({"result": True, "data":review.to_json(with_user=get_jwt_identity())})
+
+
+
 @app.route("/reviews", methods=['POST'])
 @jwt_required
 def create_review():
