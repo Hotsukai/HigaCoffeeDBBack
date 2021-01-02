@@ -89,7 +89,7 @@ class Review(db.Model):
     updated_at = db.Column(db.DateTime, nullable=False,
                            default=db.func.now(), onupdate=db.func.now())
     coffee = db.relationship("Coffee", back_populates="reviews")
-    coffee_id = reviewer_id = db.Column(db.Integer, db.ForeignKey(
+    coffee_id =  db.Column(db.Integer, db.ForeignKey(
         "coffees.id"),  nullable=False)
     reviewer = db.relationship("User", back_populates="reviews")
     reviewer_id = db.Column(db.Integer, db.ForeignKey(
@@ -111,6 +111,12 @@ class Review(db.Model):
             "createdAt": self.created_at,
             "updatedAt": self.updated_at,
         }
+
+    def is_valid(bitterness, situation,   strongness,   want_repeat):
+        if bitterness > 4 or bitterness < 0 or strongness > 4 or strongness < 0 or situation > 4 or situation < 0 or want_repeat > 3 or want_repeat < 0:
+            return False
+        else:
+            return True
 
 
 BEAN = {
