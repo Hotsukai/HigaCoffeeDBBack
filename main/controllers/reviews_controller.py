@@ -59,7 +59,6 @@ def update_review(id):
         if review.coffee_id != coffee_id:
             return flask.jsonify({"result": False, "message": "対象のコーヒーが一致しません"})
         if not list(filter(lambda drinker: drinker.id == reviewer_id, coffee.drinkers)):
-            for drinker in coffee.drinkers:
             return flask.jsonify({"result": False, "message": "このコーヒーへのレビューを書く権利がありません"}), 400
         review.bitterness = bitterness
         review.feeling = feeling
