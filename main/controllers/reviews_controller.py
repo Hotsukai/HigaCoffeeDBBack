@@ -29,6 +29,50 @@ def get_reviews():
     return flask.jsonify({"result": True, "data": [review.to_json(with_user=get_jwt_identity()) for review in reviews]})
 
 
+@app.route("/reviews/<int:id>", methods=['GET'])
+@jwt_optional
+def get_review(id):
+    review = Review.query.get(id)
+    return flask.jsonify({"result": True, "data": review.to_json(with_user=get_jwt_identity())})
+
+
+@app.route("/reviews/<int:id>", methods=['PUT'])
+@jwt_required
+def update_review(id):
+    current_user = User.query.filter_by(name=get_jwt_identity()).one_or_none()
+    try:
+        form_data = flask.request.json
+        if current_user.id != form_data.get('reviewerId'):
+            return flask.jsonify({"result": False, "message": "ユーザが不正です"}), 401
+        bitterness = form_data.get('bitterness')
+        coffee_id = form_data.get('coffeeId')
+        feeling = form_data.get('feeling')
+        situation = form_data.get('situation')
+        strongness = form_data.get('strongness')
+        reviewer_id = current_user.id
+        want_repeat = form_data.get('wantRepeat')
+        if not Review.is_valid(bitterness, situation, strongness, want_repeat):
+            return flask.jsonify({"result": False, "message": "入力が不正です"})
+
+        review = Review.query.get(id)
+        coffee = Coffee.query.get(coffee_id)
+        if review.coffee_id != coffee_id:
+            return flask.jsonify({"result": False, "message": "対象のコーヒーが一致しません"})
+        if not list(filter(lambda drinker: drinker.id == reviewer_id, coffee.drinkers)):
+            for drinker in coffee.drinkers:
+            return flask.jsonify({"result": False, "message": "このコーヒーへのレビューを書く権利がありません"}), 400
+        review.bitterness = bitterness
+        review.feeling = feeling
+        review.situation = situation
+        review.strongness = strongness
+        review.want_repeat = want_repeat
+        db.session.commit()
+        return flask.jsonify({"result": True, "message": "レビューを更新しました。", "data": review.to_json()})
+    except Exception as e:
+        print(e)
+        return flask.jsonify({"result": False, "message": "予期せぬエラーが発生しました : {}".format(e)}), 500
+
+
 @app.route("/reviews", methods=['POST'])
 @jwt_required
 def create_review():
@@ -44,7 +88,7 @@ def create_review():
         strongness = form_data.get('strongness')
         reviewer_id = current_user.id
         want_repeat = form_data.get('wantRepeat')
-        if bitterness > 4 or bitterness < 0 or strongness > 4 or strongness < 0 or situation > 4 or situation < 0 or want_repeat > 3 or want_repeat < 0:
+        if not Review.is_valid(bitterness, situation, strongness, want_repeat):
             return flask.jsonify({"result": False, "message": "入力が不正です"})
         new_review = Review(bitterness=bitterness, want_repeat=want_repeat, coffee_id=coffee_id,
                             situation=situation, strongness=strongness, feeling=feeling, reviewer_id=reviewer_id)
