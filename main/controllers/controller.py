@@ -1,7 +1,6 @@
 import flask
-import datetime
-from main import app, db
-from main.models import BEAN, EXTRACTION_METHOD, MESH
+from main import app
+from main.models import BEANS, EXTRACTION_METHOD
 from main.controllers import (
     users_controller, coffees_controller, reviews_controller, data_controller)
 
@@ -23,7 +22,7 @@ def oumugaeshi():
 
 @ app.route("/beans", methods=['GET'])
 def get_beans():
-    return flask.jsonify({"result": True, "data": BEAN})
+    return flask.jsonify({"result": True, "data": [bean.to_json() for bean in BEANS]})
 
 
 @ app.route("/extraction_methods", methods=['GET'])
