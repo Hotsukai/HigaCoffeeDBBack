@@ -1,6 +1,9 @@
 from main import db, app
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from enum import IntEnum, Enum, auto
+from typing import List, Tuple, Dict
+from datetime import datetime
 
 drinkers = db.Table("drinkers",
                     db.Column("coffee_id", db.Integer,
@@ -40,7 +43,7 @@ class Coffee(db.Model):
         return{
             "id": self.id,
             "createdAt": self.created_at,
-            "bean": BEAN[self.bean_id],
+            "bean": BEANS[self.bean_id].to_json(),
             "dripper": self.dripper.to_json() if with_user else None,
             "drinkers": [drinker.to_json() for drinker in self.drinkers] if with_user else None,
             "extractionTime": self.extraction_time,
@@ -89,7 +92,7 @@ class Review(db.Model):
     updated_at = db.Column(db.DateTime, nullable=False,
                            default=db.func.now(), onupdate=db.func.now())
     coffee = db.relationship("Coffee", back_populates="reviews")
-    coffee_id =  db.Column(db.Integer, db.ForeignKey(
+    coffee_id = db.Column(db.Integer, db.ForeignKey(
         "coffees.id"),  nullable=False)
     reviewer = db.relationship("User", back_populates="reviews")
     reviewer_id = db.Column(db.Integer, db.ForeignKey(
@@ -113,54 +116,60 @@ class Review(db.Model):
         }
 
     def is_valid(bitterness, situation,   strongness,   want_repeat):
-        if bitterness > 4 or bitterness < 0 or strongness > 4 or strongness < 0 or situation > 4 or situation < 0 or want_repeat > 3 or want_repeat < 0:
+        if bitterness > 4 or bitterness < 0 or \
+                strongness > 4 or strongness < 0 or\
+                situation > 4 or situation < 0 or\
+                want_repeat > 3 or want_repeat < 0:
             return False
         else:
             return True
 
 
-BEAN = {
-    1: {
-        "id": 1,
-        "name": "ブラジル深煎り",
-        "detail": "ビター 421",
-    },
-    2: {
-        "id": 2,
-        "name": "ブラジル中煎り",
-        "detail": "No.2 ｾﾐｳｫｯｼｭﾄﾞ 421"
-    },
-    3: {
-        "id": 3,
-        "name": "コロンビア深煎り",
-        "detail": "コロンビア ビター 421"
-    },
-    4: {
-        "id": 4,
-        "name": "コロンビア中煎り",
-        "detail": "コロンビア スプレモ 421"
-    },
-    5: {
-        "id": 5,
-        "name": "タンザニア深煎り",
-        "detail": "タンザニア ビター 421"
-    },
-    6: {
-        "id": 6,
-        "name": "タンザニア中煎り",
-        "detail": "タンザニア キリマンジャロAA 421"
-    },
-    7: {
-        "id": 7,
-        "name": "マンデリン深煎り",
-        "detail": "マンデリン ビター 432"
-    },
-    8: {
-        "id": 8,
-        "name": "マンデリン中煎り",
-        "detail": "マンデリン G/1 432"
-    },
-}
+class Roast(Enum):
+    深煎り = 1
+    中煎り = 2
+
+
+class BeanType(Enum):
+    ブラジル = 1
+    コロンビア = 2
+    タンザニア = 3
+    マンデリン = 4
+
+
+class Bean():
+    def __init__(self, id: int, name: str, detail: str, roast: Roast, type: BeanType):
+        self.id = id
+        self.name = name
+        self.detail = detail
+        self.roast = roast
+        self.type = type
+
+    def to_json(self):
+        return {
+            "id":     self.id,
+            "fullName":   self.name,
+            "detail": self.detail,
+            "roast": {
+                "roastID": self.roast.value,
+                "roastName": self.roast.name, },
+            "BeanType": {
+                "BeanTypeID":  self.type.value,
+                "BeanTypeName": self.type.name,
+            }
+        }
+
+
+BEANS: List[Bean] = [
+    Bean(1, "ブラジル深煎り", "ビター 421", Roast.深煎り, BeanType.ブラジル),
+    Bean(2, "ブラジル中煎り", "No.2 ｾﾐｳｫｯｼｭﾄﾞ 421", Roast.中煎り, BeanType.ブラジル),
+    Bean(3, "コロンビア深煎り", "コロンビア ビター 421", Roast.深煎り, BeanType.コロンビア),
+    Bean(4, "コロンビア中煎り", "コロンビア スプレモ 421", Roast.中煎り, BeanType.コロンビア),
+    Bean(5, "タンザニア深煎り", "タンザニア ビター 421", Roast.深煎り, BeanType.タンザニア),
+    Bean(6, "タンザニア中煎り", "タンザニア キリマンジャロAA 421", Roast.中煎り, BeanType.タンザニア),
+    Bean(7, "マンデリン深煎り", "マンデリン ビター 432", Roast.深煎り, BeanType.マンデリン),
+    Bean(8, "マンデリン中煎り", "マンデリン G/1 432", Roast.中煎り, BeanType.マンデリン),
+]
 
 EXTRACTION_METHOD = {
     1: {
