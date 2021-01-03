@@ -1,12 +1,10 @@
 # import main した時実行される
-from logging import log
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import (
-    JWTManager, jwt_required, create_access_token,
-    get_jwt_identity
+    JWTManager
 )
 import os
 from os.path import join, dirname
@@ -35,5 +33,6 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods',
                          'GET,PUT,POST,DELETE,OPTIONS')
     return response
+
 
 import main.controllers.controller

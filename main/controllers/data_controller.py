@@ -1,10 +1,10 @@
 import flask
-from main import db, jwt
+from main import db
 from main.models import Coffee, User, Review, BEANS
 from flask_jwt_extended import (
-    jwt_required,
     get_jwt_identity, jwt_optional
 )
+from typing import Union
 app = flask.Blueprint('data_controller', __name__)
 
 
@@ -14,9 +14,9 @@ def get_provide_count():
     data = {}
     for bean in BEANS:
         bean_data = {"id": bean.id, "name": bean.name}
-        bean_data["dripCount"] = Coffee.query.filter_by(
+        bean_data["dripCount"]: int = Coffee.query.filter_by(
             bean_id=bean.id).count()
-        bean_data["reviewCount"] = Review.query.filter(
+        bean_data["reviewCount"]: int = Review.query.filter(
             Review.coffee.has(bean_id=bean.id)).count()
         current_user = User.query.filter_by(
             name=get_jwt_identity()).one_or_none()
@@ -37,10 +37,10 @@ def get_provide_count():
 
 @app.route("/data/strongness/<int:bean_id>")
 @jwt_optional
-def get_strongness(bean_id:int):
+def get_strongness(bean_id: int):
     strongness_data = {}
     for strongness in range(1, 5):
-        avg = db.session.query(
+        avg: dict = db.session.query(
             db.func.avg(Coffee.extraction_time).label('time'),
             db.func.avg(Coffee.powder_amount).label('powder'),
             db.func.avg(Coffee.water_amount).label('water')
@@ -51,16 +51,20 @@ def get_strongness(bean_id:int):
                 strongness - 1 <= Review.strongness,
                 Review.strongness < strongness)
         ).one_or_none()._asdict()
-        avg_ex_time = float(avg["time"]) if avg["time"] else None
-        avg_powder_per_120cc = float(avg["powder"])/float(
-            avg["water"])*120 if avg["water"] and avg["powder"] and float(avg["water"]) != 0 else None
-        strongness_data[strongness] = {
+        avg_ex_time: Union[float, None] = float(
+            avg["time"]) if avg["time"] else None
+        avg_powder_per_120cc: Union[float, None] = float(avg["powder"])\
+            / float(avg["water"])*120 \
+            if avg["water"] and avg["powder"] and float(avg["water"]) != 0 \
+            else None
+        strongness_data[strongness]: dict = {
             "averageExtractionTime": avg_ex_time,
             "averagePowderAmountPer120cc": avg_powder_per_120cc}
-    current_user = User.query.filter_by(name=get_jwt_identity()).one_or_none()
+    current_user: User = User.query.filter_by(
+        name=get_jwt_identity()).one_or_none()
     if current_user:
         for strongness in range(1, 5):
-            avg = db.session.query(
+            avg: dict = db.session.query(
                 db.func.avg(Coffee.extraction_time).label('time'),
                 db.func.avg(Coffee.powder_amount).label('powder'),
                 db.func.avg(Coffee.water_amount).label('water')
@@ -72,9 +76,13 @@ def get_strongness(bean_id:int):
                     Review.strongness < strongness,
                     Review.reviewer == current_user)
             ).one_or_none()._asdict()
-            avg_ex_time = float(avg["time"]) if avg["time"] else None
-            avg_powder_per_120cc = float(avg["powder"])/float(
-                avg["water"])*120 if avg["water"] and avg["powder"] and float(avg["water"]) != 0 else None
+            avg_ex_time: Union[float, None] = float(avg["time"]) \
+                if avg["time"]\
+                else None
+            avg_powder_per_120cc: Union[float, None] = float(avg["powder"])\
+                / float(avg["water"])*120 \
+                if avg["water"] and avg["powder"] and float(avg["water"]) != 0\
+                else None
             strongness_data[strongness].update({
                 "usersAverageExtractionTime": avg_ex_time,
                 "usersAveragePowderAmountPer120cc": avg_powder_per_120cc})
@@ -84,21 +92,25 @@ def get_strongness(bean_id:int):
 @ app.route("/data/bean_position")
 @jwt_optional
 def get_position():
-    position_data = {}
+    position_data: dict = {}
     for bean in BEANS:
-        avg = db.session.query(
+        avg: dict = db.session.query(
             db.func.avg(Review.bitterness).label('bitterness'),
             db.func.avg(Review.strongness).label('strongness'),
             db.func.avg(Review.situation).label('situation'),
             db.func.avg(Review.want_repeat).label('want_repeat')
-        ).filter(Coffee.bean_id == bean.id).filter(Review.coffee_id == Coffee.id).one_or_none()._asdict()
-        avg_bitterness = float(
-            avg['bitterness']) if avg['bitterness'] else None
-        avg_strongness = float(
-            avg['strongness']) if avg['strongness'] else None
-        avg_situation = float(avg['situation']) if avg['situation'] else None
-        avg_want_repeat = float(
-            avg['want_repeat']) if avg['want_repeat'] else None
+        ).filter(Coffee.bean_id == bean.id)\
+            .filter(Review.coffee_id == Coffee.id)\
+            .one_or_none()\
+            ._asdict()
+        avg_bitterness = float(avg['bitterness'])\
+            if avg['bitterness'] else None
+        avg_strongness = float(avg['strongness']) \
+            if avg['strongness'] else None
+        avg_situation = float(avg['situation']) \
+            if avg['situation'] else None
+        avg_want_repeat = float(avg['want_repeat'])\
+            if avg['want_repeat'] else None
         position_data[bean.id] = {
             'avgBitterness': avg_bitterness,
             'avgStrongness': avg_strongness,
@@ -106,7 +118,8 @@ def get_position():
             'avgWantRepeat': avg_want_repeat,
             "beanName": BEANS[bean.id-1].name
         }
-    current_user = User.query.filter_by(name=get_jwt_identity()).one_or_none()
+    current_user: Union[User, None] = User.query.filter_by(name=get_jwt_identity())\
+        .one_or_none()
     if current_user:
         for bean in BEANS:
             avg = db.session.query(
