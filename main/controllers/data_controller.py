@@ -13,10 +13,10 @@ app = flask.Blueprint('data_controller', __name__)
 def get_provide_count():
     data = {}
     for bean in BEANS:
-        bean_data = {"id": bean.id, "name": bean.name}
-        bean_data["dripCount"]: int = Coffee.query.filter_by(
+        bean_data = {"id": bean.id, "fullName": bean.name}
+        bean_data["dripCount"] = Coffee.query.filter_by(
             bean_id=bean.id).count()
-        bean_data["reviewCount"]: int = Review.query.filter(
+        bean_data["reviewCount"] = Review.query.filter(
             Review.coffee.has(bean_id=bean.id)).count()
         current_user = User.query.filter_by(
             name=get_jwt_identity()).one_or_none()
