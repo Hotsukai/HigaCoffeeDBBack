@@ -139,16 +139,12 @@ class Review(db.Model):
             "updatedAt": self.updated_at,
         }
 
-    def is_valid(self,
-                 bitterness: float, situation: float,
-                 strongness: float, want_repeat: float):
-        if bitterness > 4 or bitterness < 0 or \
-                strongness > 4 or strongness < 0 or\
-                situation > 4 or situation < 0 or\
-                want_repeat > 3 or want_repeat < 0:
-            return False
-        else:
-            return True
+    def is_valid(self):
+        return not (self.bitterness > 4 or self. bitterness < 0 or
+                    self.strongness > 4 or self.strongness < 0 or
+                    self.situation > 4 or self.situation < 0 or
+                    self.want_repeat > 3 or self.want_repeat < 0 or
+                    self.reviewer_id is None or self.coffee_id is None)
 
 
 class Roast(Enum):
