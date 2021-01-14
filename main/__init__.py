@@ -35,4 +35,4 @@ def after_request(response):
     return response
 
 
-import main.controllers.controller
+from main.controllers import controller
