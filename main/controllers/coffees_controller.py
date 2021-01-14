@@ -5,7 +5,7 @@ from flask_jwt_extended import (
     jwt_required,
     get_jwt_identity, jwt_optional
 )
-from typing import Union
+from typing import Union, List
 app = flask.Blueprint('coffees_controller', __name__)
 
 
@@ -39,7 +39,7 @@ def get_coffees():
             return flask.jsonify({"result": False, "message": "ログインしてください"}), 401
     if bean_id is not None:
         sql_query.append(Coffee.bean_id == bean_id)
-    coffees: list[Coffee] = Coffee.query.filter(
+    coffees: List[Coffee] = Coffee.query.filter(
         db.and_(*sql_query)).order_by(db.desc(Coffee.created_at)).limit(50).all()
     return flask.jsonify(
         {
