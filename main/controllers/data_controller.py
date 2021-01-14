@@ -4,7 +4,7 @@ from main.models import Coffee, User, Review, BEANS
 from flask_jwt_extended import (
     get_jwt_identity, jwt_optional
 )
-from typing import Union
+from typing import Union, Dict
 app = flask.Blueprint('data_controller', __name__)
 
 
@@ -13,10 +13,10 @@ app = flask.Blueprint('data_controller', __name__)
 def get_provide_count():
     data = {}
     for bean in BEANS:
-        bean_data = {"id": bean.id, "name": bean.name}
-        bean_data["dripCount"]: int = Coffee.query.filter_by(
+        bean_data = {"id": bean.id, "fullName": bean.name}
+        bean_data["dripCount"] = Coffee.query.filter_by(
             bean_id=bean.id).count()
-        bean_data["reviewCount"]: int = Review.query.filter(
+        bean_data["reviewCount"] = Review.query.filter(
             Review.coffee.has(bean_id=bean.id)).count()
         current_user = User.query.filter_by(
             name=get_jwt_identity()).one_or_none()
@@ -38,9 +38,9 @@ def get_provide_count():
 @app.route("/data/strongness/<int:bean_id>")
 @jwt_optional
 def get_strongness(bean_id: int):
-    strongness_data = {}
+    strongness_data: Dict[int, Dict[str, float]] = {}
     for strongness in range(1, 5):
-        avg: dict = db.session.query(
+        avg: Dict[str, float] = db.session.query(
             db.func.avg(Coffee.extraction_time).label('time'),
             db.func.avg(Coffee.powder_amount).label('powder'),
             db.func.avg(Coffee.water_amount).label('water')
@@ -57,14 +57,14 @@ def get_strongness(bean_id: int):
             / float(avg["water"])*120 \
             if avg["water"] and avg["powder"] and float(avg["water"]) != 0 \
             else None
-        strongness_data[strongness]: dict = {
+        strongness_data[strongness] = {
             "averageExtractionTime": avg_ex_time,
             "averagePowderAmountPer120cc": avg_powder_per_120cc}
     current_user: User = User.query.filter_by(
         name=get_jwt_identity()).one_or_none()
     if current_user:
         for strongness in range(1, 5):
-            avg: dict = db.session.query(
+            avg: Dict[str, float] = db.session.query(
                 db.func.avg(Coffee.extraction_time).label('time'),
                 db.func.avg(Coffee.powder_amount).label('powder'),
                 db.func.avg(Coffee.water_amount).label('water')
@@ -92,9 +92,9 @@ def get_strongness(bean_id: int):
 @ app.route("/data/bean_position")
 @jwt_optional
 def get_position():
-    position_data: dict = {}
+    position_data: Dict[int, Dict[str, float]] = {}
     for bean in BEANS:
-        avg: dict = db.session.query(
+        avg: Dict[str, float] = db.session.query(
             db.func.avg(Review.bitterness).label('bitterness'),
             db.func.avg(Review.strongness).label('strongness'),
             db.func.avg(Review.situation).label('situation'),

@@ -156,7 +156,7 @@ class Roast(Enum):
     中煎り = 2
 
 
-class BeanType(Enum):
+class Origin(Enum):
     ブラジル = 1
     コロンビア = 2
     タンザニア = 3
@@ -164,37 +164,37 @@ class BeanType(Enum):
 
 
 class Bean():
-    def __init__(self, id: int, name: str, detail: str, roast: Roast, type: BeanType):
+    def __init__(self, id: int, name: str, detail: str, roast: Roast, origin: Origin):
         self.id = id
         self.name = name
         self.detail = detail
         self.roast = roast
-        self.type = type
+        self.origin = origin
 
     def to_json(self):
         return {
-            "id":     self.id,
-            "fullName":   self.name,
+            "id": self.id,
+            "fullName": self.name,
             "detail": self.detail,
             "roast": {
-                "roastID": self.roast.value,
-                "roastName": self.roast.name, },
-            "BeanType": {
-                "BeanTypeID":  self.type.value,
-                "BeanTypeName": self.type.name,
+                "id": self.roast.value,
+                "name": self.roast.name, },
+            "origin": {
+                "id":  self.origin.value,
+                "name": self.origin.name,
             }
         }
 
 
 BEANS: List[Bean] = [
-    Bean(1, "ブラジル深煎り", "ビター 421", Roast.深煎り, BeanType.ブラジル),
-    Bean(2, "ブラジル中煎り", "No.2 ｾﾐｳｫｯｼｭﾄﾞ 421", Roast.中煎り, BeanType.ブラジル),
-    Bean(3, "コロンビア深煎り", "コロンビア ビター 421", Roast.深煎り, BeanType.コロンビア),
-    Bean(4, "コロンビア中煎り", "コロンビア スプレモ 421", Roast.中煎り, BeanType.コロンビア),
-    Bean(5, "タンザニア深煎り", "タンザニア ビター 421", Roast.深煎り, BeanType.タンザニア),
-    Bean(6, "タンザニア中煎り", "タンザニア キリマンジャロAA 421", Roast.中煎り, BeanType.タンザニア),
-    Bean(7, "マンデリン深煎り", "マンデリン ビター 432", Roast.深煎り, BeanType.マンデリン),
-    Bean(8, "マンデリン中煎り", "マンデリン G/1 432", Roast.中煎り, BeanType.マンデリン),
+    Bean(1, "ブラジル深煎り", "ビター 421", Roast.深煎り, Origin.ブラジル),
+    Bean(2, "ブラジル中煎り", "No.2 ｾﾐｳｫｯｼｭﾄﾞ 421", Roast.中煎り, Origin.ブラジル),
+    Bean(3, "コロンビア深煎り", "コロンビア ビター 421", Roast.深煎り, Origin.コロンビア),
+    Bean(4, "コロンビア中煎り", "コロンビア スプレモ 421", Roast.中煎り, Origin.コロンビア),
+    Bean(5, "タンザニア深煎り", "タンザニア ビター 421", Roast.深煎り, Origin.タンザニア),
+    Bean(6, "タンザニア中煎り", "タンザニア キリマンジャロAA 421", Roast.中煎り, Origin.タンザニア),
+    Bean(7, "マンデリン深煎り", "マンデリン ビター 432", Roast.深煎り, Origin.マンデリン),
+    Bean(8, "マンデリン中煎り", "マンデリン G/1 432", Roast.中煎り, Origin.マンデリン),
 ]
 
 EXTRACTION_METHOD = {
