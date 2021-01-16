@@ -1,11 +1,14 @@
+from typing import Union, List
+
 import flask
-from main import db
-from main.models import Coffee, User
 from flask_jwt_extended import (
     jwt_required,
     get_jwt_identity, jwt_optional
 )
-from typing import Union, List
+
+from src.database import db
+from src.models.models import Coffee, User
+
 app = flask.Blueprint('coffees_controller', __name__)
 
 

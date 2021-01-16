@@ -1,11 +1,13 @@
+from typing import List,  Union
+
 import flask
-from main import db
-from main.models import Coffee, User, Review
 from flask_jwt_extended import (
     jwt_required,
     get_jwt_identity, jwt_optional
 )
-from typing import List,  Union
+
+from src.database import db
+from src.models.models import Coffee, User, Review
 
 app = flask.Blueprint('reviews_controller', __name__)
 

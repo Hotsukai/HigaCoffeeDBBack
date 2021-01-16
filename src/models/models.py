@@ -1,8 +1,8 @@
-from main import (app, db)
-from flask_migrate import Migrate
 from enum import Enum
 from typing import List
 from datetime import datetime
+
+from ..database import db
 
 drinkers = db.Table("drinkers",
                     db.Column("coffee_id", db.Integer,
@@ -210,6 +210,3 @@ MESH = {
         "name": "やや粗め"
     },
 }
-
-
-migrate = Migrate(app, db)
