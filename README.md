@@ -61,4 +61,4 @@ HigaCoffee ではコーヒーを題材にフロント開発・バックエンド
    ```
 
    `test_*.py`がすべて実行される。  
-   テストインスタンスの DB は[base.py](./src/tests/base.py)に記載のように毎回マイグレーションと全削除を行われる。
+   ※[base.py](./src/tests/base.py)に記載の処理がtestメソッドのたびに行われる。

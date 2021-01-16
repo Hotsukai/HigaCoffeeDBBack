@@ -1,7 +1,6 @@
 from flask_testing import TestCase
 
 from src.app import app
-
 from src.database import db
 
 
