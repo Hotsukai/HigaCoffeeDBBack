@@ -3,7 +3,7 @@
 HigaCoffee のデータベースプロジェクトのバックエンドです。
 HigaCoffee ではコーヒーを題材にフロント開発・バックエンド開発・機械学習をやってみたい人を募集しています。
 
-# API 仕様
+## API 仕様
 
 | URL               | Method | 説明                   | 備考 |
 | :---------------- | :----- | :--------------------- | :--- |
@@ -17,23 +17,48 @@ HigaCoffee ではコーヒーを題材にフロント開発・バックエンド
 | /auth/create_user | POST   | ユーザー登録           |      |
 | /beans            | GET    | 豆の種類取得           |      |
 
-# 実行方法
+## 実行方法
 
 1. 仮想環境作成・有効化  
    `$ python -m venv venv `  
    `$ source venv/bin/activate`
-1. 関連パッケージインストール  
+1. パッケージインストール  
    `$ pip install -r requirements.txt `
-1. migrate
+1. DB 作成
+   1. データベースを作成し、URI を環境変数`DATABASE_URI`に保存  
+      ※ デフォルトでは higa という PostgreSQL の DB が使われる。この場合 PostgreSQL に higa という DB を作成する必要がある。
+1. マイグレーション
 
-   1. マイグレーションリポジトリ作成  
-      ※マイグレーション(DB 構造を models と自動で一致させる)するために必要  
-      `$ flask db init`
-   1. マイグレーション作成  
-      「DB 構造をこう変えてくださいね～」っていうファイルができる  
-      `$ flask db migrate`
+   1. (マイグレーションディレクトリ作成)  
+      マイグレーション(DB 構造を models と自動で一致させる)するために必要。  
+      ただしこのリポジトリではすでに存在しているため不要
+      ```
+      $ flask db init
+      ```
+   1. マイグレーションファイル作成  
+      「DB 構造をこう変えてくださいね」っていう[ファイル](./migrations/versions)ができる(=マイグレーションファイル)
+      ```
+      $ flask db migrate
+      ```
    1. マイグレーション実行  
-      `$ flask db upgrade`
+      マイグレーションファイルに基づいて DB 構造が変更される。
+      ```
+      $ flask db upgrade
+      ```
 
 1. ローカルサーバ立ち上げ  
    `$ python run.py`
+
+## テスト
+
+1. テスト DB 作成。
+1. URI を環境変数`TEST_DATABASE_URI`に保存  
+   ※ デフォルトでは higa_test という PostgreSQL の DB が使われる。この場合 PostgreSQL に higa_test という DB を作成する必要がある。
+1. テスト実行
+
+   ```
+   $ pytest
+   ```
+
+   `test_*.py`がすべて実行される。  
+   テストインスタンスの DB は[base.py](./src/tests/base.py)に記載のように毎回マイグレーションと全削除を行われる。

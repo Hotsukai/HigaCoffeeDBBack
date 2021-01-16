@@ -17,7 +17,7 @@ load_dotenv(dotenv_path)
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object('src.config')
+    app.config.from_object('src.config.Config')
     init_db(app)
     CORS(app)
     return app
