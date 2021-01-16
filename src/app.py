@@ -39,6 +39,7 @@ app.register_blueprint(coffees_controller.app)
 app.register_blueprint(reviews_controller.app)
 app.register_blueprint(data_controller.app)
 
+
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', ALLOW_ORIGIN)
