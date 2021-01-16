@@ -33,3 +33,4 @@ class BaseTestCase(TestCase):
         db.session.add(user1)
         db.session.add(user2)
         db.session.commit()
+        return user1, user2
