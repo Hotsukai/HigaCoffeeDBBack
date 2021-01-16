@@ -1,10 +1,12 @@
+from typing import Union, Dict
+
 import flask
-from main import db
-from main.models import Coffee, User, Review, BEANS
 from flask_jwt_extended import (
     get_jwt_identity, jwt_optional
 )
-from typing import Union, Dict
+
+from src.database import db
+from src.models.models import Coffee, User, Review, BEANS
 app = flask.Blueprint('data_controller', __name__)
 
 

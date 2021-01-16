@@ -1,11 +1,14 @@
+from typing import List
+
 import flask
-from main import db, bcrypt, jwt, WATCH_WORD
 from flask_jwt_extended import (
     jwt_required, create_access_token,
     get_jwt_identity, jwt_optional
 )
-from main.models import User
-from typing import List
+
+from src.app import bcrypt, jwt, WATCH_WORD
+from src.database import db
+from src.models.models import User
 
 app = flask.Blueprint('users_controller', __name__)
 

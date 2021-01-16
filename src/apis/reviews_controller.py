@@ -1,11 +1,13 @@
+from typing import List,  Union
+
 import flask
-from main import db
-from main.models import Coffee, User, Review
 from flask_jwt_extended import (
     jwt_required,
     get_jwt_identity, jwt_optional
 )
-from typing import List,  Union
+
+from src.database import db
+from src.models.models import Coffee, User, Review
 
 app = flask.Blueprint('reviews_controller', __name__)
 
@@ -61,8 +63,6 @@ def update_review(id):
         strongness: float = form_data.get('strongness')
         reviewer_id: int = current_user.id
         want_repeat: float = form_data.get('wantRepeat')
-        if not Review.is_valid(bitterness, situation, strongness, want_repeat):
-            return flask.jsonify({"result": False, "message": "入力が不正です"})
 
         review: Review = Review.query.get(id)
         coffee: Coffee = Coffee.query.get(coffee_id)
@@ -78,6 +78,8 @@ def update_review(id):
         review.situation = situation
         review.strongness = strongness
         review.want_repeat = want_repeat
+        if not review.is_valid():
+            return flask.jsonify({"result": False, "message": "入力が不正です"})
         db.session.commit()
         return flask.jsonify({
             "result": True,
@@ -106,12 +108,12 @@ def create_review():
         strongness: float = form_data.get('strongness')
         reviewer_id: int = current_user.id
         want_repeat: float = form_data.get('wantRepeat')
-        if not Review.is_valid(bitterness, situation, strongness, want_repeat):
-            return flask.jsonify({"result": False, "message": "入力が不正です"})
         new_review = Review(
             bitterness=bitterness, want_repeat=want_repeat,
             coffee_id=coffee_id, situation=situation, strongness=strongness,
             feeling=feeling, reviewer_id=reviewer_id)
+        if not new_review.is_valid():
+            return flask.jsonify({"result": False, "message": "入力が不正です"}), 400
         coffee: Coffee = Coffee.query.get(coffee_id)
         if not list(filter(lambda drinker: drinker.id == reviewer_id, coffee.drinkers)):
             return flask.jsonify({
