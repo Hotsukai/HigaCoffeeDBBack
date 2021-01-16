@@ -1,10 +1,8 @@
 from typing import List
 
 import flask
-from flask_jwt_extended import (
-    jwt_required, create_access_token,
-    get_jwt_identity, jwt_optional
-)
+from flask_jwt_extended import (jwt_required, create_access_token,
+                                get_jwt_identity, jwt_optional)
 
 from src.app import bcrypt, jwt, WATCH_WORD
 from src.database import db
@@ -45,17 +43,19 @@ def create_user():
     if User.query.filter_by(name=username).one_or_none():
         return flask.jsonify({"result": False, "message": "ユーザー名が利用されています。"})
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-    user: User = User(name=username, encrypted_password=hashed_password,
+    user: User = User(name=username,
+                      encrypted_password=hashed_password,
                       profile=profile)
     db.session.add(user)
     db.session.commit()
     access_token: str = create_access_token(identity=user)
     return flask.jsonify({
         "result": True,
-        "message": "ユーザー("+username+")を作成しました。",
+        "message": "ユーザー(" + username + ")を作成しました。",
         "data": user.to_json(),
         'token': access_token
     })
+
 
 # TODO:エラーハンドリング
 
@@ -66,30 +66,31 @@ def login():
     username: str = form_data.get('username')
     password: str = form_data.get('password')
     if not username:
-        return flask.jsonify({"result": False, "message": "ユーザー名は必須です"})
+        return flask.jsonify({"result": False, "message": "ユーザー名は必須です"}), 400
     if not password:
-        return flask.jsonify({"result": False, "message": "パスワードは必須です"})
+        return flask.jsonify({"result": False, "message": "パスワードは必須です"}), 400
     user: User = User.query.filter_by(name=username).one_or_none()
     if user is None:
         return flask.jsonify({
             "result": False,
-            "message": "ユーザー("+username+")は登録されていません"
-        })
+            "message": "ユーザー(" + username + ")は登録されていません"
+        }), 401
 
     if bcrypt.check_password_hash(user.encrypted_password, password):
         access_token: str = create_access_token(identity=user)
 
         return flask.jsonify({
             "result": True,
-            "message": "ユーザー("+username+")のログインに成功しました。",
+            "message": "ユーザー(" + username + ")のログインに成功しました。",
             "data": user.to_json(),
             'token': access_token
         })
     else:
         return flask.jsonify({
             "result": False,
-            "message": "ユーザー("+username+")のパスワードが間違っています"
-        })
+            "message": "ユーザー(" + username + ")のパスワードが間違っています"
+        }), 401
+
 
 # TODO: ログアウト実装
 # https://flask-jwt-extended.readthedocs.io/en/stable/blacklist_and_token_revoking/
@@ -109,12 +110,14 @@ def auth():
         return flask.jsonify({
             "result": True,
             "data": current_user.to_json(),
-            "message": "現在のユーザーです"})
+            "message": "現在のユーザーです"
+        })
     else:
         return flask.jsonify({
             "result": False,
             "data": None,
-            "message": "ログインされていません"})
+            "message": "ログインされていません"
+        })
 
 
 @app.route("/users", methods=['GET'])

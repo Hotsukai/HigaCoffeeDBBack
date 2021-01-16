@@ -1,7 +1,8 @@
 from flask_testing import TestCase
 
-from src.app import app
+from src.app import app, bcrypt
 from src.database import db
+from src.models.models import User
 
 
 class BaseTestCase(TestCase):
@@ -17,3 +18,18 @@ class BaseTestCase(TestCase):
     def tearDown(self):
         db.session.remove()
         db.drop_all()
+
+    def addSampleUser(self):
+        user1 = User(
+            name="テストユーザー1",
+            encrypted_password=bcrypt.generate_password_hash(
+                "password").decode('utf-8'),
+        )
+        user2 = User(
+            name="テストユーザー2",
+            encrypted_password=bcrypt.generate_password_hash(
+                "password2").decode('utf-8'),
+        )
+        db.session.add(user1)
+        db.session.add(user2)
+        db.session.commit()
