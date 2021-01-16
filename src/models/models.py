@@ -52,7 +52,8 @@ class Coffee(db.Model):
         return{
             "id": self.id,
             "createdAt": self.created_at,
-            "bean": BEANS[self.bean_id].to_json(),
+            "bean": list(filter(lambda bean: bean.id == self.bean_id,
+                                BEANS))[0].to_json(),
             "dripper": self.dripper.to_json() if with_user else None,
             "drinkers": [drinker.to_json() for drinker in self.drinkers]
             if with_user else None,
