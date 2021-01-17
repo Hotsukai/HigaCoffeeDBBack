@@ -1,8 +1,8 @@
-from main import (app, db)
-from flask_migrate import Migrate
 from enum import Enum
 from typing import List
 from datetime import datetime
+
+from ..database import db
 
 drinkers = db.Table("drinkers",
                     db.Column("coffee_id", db.Integer,
@@ -52,7 +52,8 @@ class Coffee(db.Model):
         return{
             "id": self.id,
             "createdAt": self.created_at,
-            "bean": BEANS[self.bean_id].to_json(),
+            "bean": list(filter(lambda bean: bean.id == self.bean_id,
+                                BEANS))[0].to_json(),
             "dripper": self.dripper.to_json() if with_user else None,
             "drinkers": [drinker.to_json() for drinker in self.drinkers]
             if with_user else None,
@@ -139,16 +140,12 @@ class Review(db.Model):
             "updatedAt": self.updated_at,
         }
 
-    def is_valid(self,
-                 bitterness: float, situation: float,
-                 strongness: float, want_repeat: float):
-        if bitterness > 4 or bitterness < 0 or \
-                strongness > 4 or strongness < 0 or\
-                situation > 4 or situation < 0 or\
-                want_repeat > 3 or want_repeat < 0:
-            return False
-        else:
-            return True
+    def is_valid(self):
+        return not (self.bitterness > 4 or self. bitterness < 0 or
+                    self.strongness > 4 or self.strongness < 0 or
+                    self.situation > 4 or self.situation < 0 or
+                    self.want_repeat > 3 or self.want_repeat < 0 or
+                    self.reviewer_id is None or self.coffee_id is None)
 
 
 class Roast(Enum):
@@ -214,6 +211,3 @@ MESH = {
         "name": "やや粗め"
     },
 }
-
-
-migrate = Migrate(app, db)

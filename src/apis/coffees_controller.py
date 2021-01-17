@@ -1,11 +1,11 @@
-import flask
-from main import db
-from main.models import Coffee, User
-from flask_jwt_extended import (
-    jwt_required,
-    get_jwt_identity, jwt_optional
-)
 from typing import Union, List
+
+import flask
+from flask_jwt_extended import (jwt_required, get_jwt_identity, jwt_optional)
+
+from src.database import db
+from src.models.models import Coffee, User
+
 app = flask.Blueprint('coffees_controller', __name__)
 
 
@@ -13,12 +13,12 @@ app = flask.Blueprint('coffees_controller', __name__)
 @jwt_optional
 def get_coffees():
     sql_query = []
-    has_review: Union[str, None] = flask.request.args.get(
-        'has_review', type=str)
-    dripper_id: Union[int, None] = flask.request.args.get(
-        'dripper_id', type=int)
-    drinker_id: Union[int, None] = flask.request.args.get(
-        'drinker_id', type=int)
+    has_review: Union[str, None] = flask.request.args.get('has_review',
+                                                          type=str)
+    dripper_id: Union[int, None] = flask.request.args.get('dripper_id',
+                                                          type=int)
+    drinker_id: Union[int, None] = flask.request.args.get('drinker_id',
+                                                          type=int)
     bean_id: Union[int, None] = flask.request.args.get('bean_id', type=int)
     current_user: User = User.query.filter_by(
         name=get_jwt_identity()).one_or_none()
@@ -26,7 +26,10 @@ def get_coffees():
         if current_user and dripper_id is current_user.id:
             sql_query.append(Coffee.dripper_id == dripper_id)
         else:
-            return flask.jsonify({"result": False, "message": "ログインしてください"}), 401
+            return flask.jsonify({
+                "result": False,
+                "message": "ログインしてください"
+            }), 401
     if drinker_id is not None:
         if current_user and drinker_id is current_user.id:
             if has_review == "true":
@@ -34,18 +37,21 @@ def get_coffees():
                 sql_query.append(Coffee.reviews.any(reviewer_id=drinker_id))
             elif has_review == "false":
                 sql_query.append(Coffee.drinkers.any(id=drinker_id))
-                sql_query.append(~ Coffee.reviews.any(reviewer_id=drinker_id))
+                sql_query.append(~Coffee.reviews.any(reviewer_id=drinker_id))
         else:
-            return flask.jsonify({"result": False, "message": "ログインしてください"}), 401
+            return flask.jsonify({
+                "result": False,
+                "message": "ログインしてください"
+            }), 401
     if bean_id is not None:
         sql_query.append(Coffee.bean_id == bean_id)
-    coffees: List[Coffee] = Coffee.query.filter(
-        db.and_(*sql_query)).order_by(db.desc(Coffee.created_at)).limit(50).all()
-    return flask.jsonify(
-        {
-            "result": True,
-            "data": [coffee.to_json(with_user=True) for coffee in coffees]
-        })
+    coffees: List[Coffee] = Coffee.query.filter(db.and_(*sql_query)).order_by(
+        db.desc(Coffee.created_at)).limit(50).all()
+    return flask.jsonify({
+        "result":
+        True,
+        "data": [coffee.to_json(with_user=True) for coffee in coffees]
+    })
 
 
 @app.route("/coffees/<int:id>", methods=['GET'])
@@ -92,7 +98,7 @@ def create_coffee():
                         water_amount=water_amount,
                         water_temperature=water_temperature)
     db.session.add(new_coffee)
-    drinkers = []
+    drinkers: List[int] = []
     for id in form_data.get('drinkerIds'):
         if id is not None and id != "":
             drinkers.append(int(id))
@@ -102,7 +108,10 @@ def create_coffee():
     for drinker_id in drinkers:
         drinker = User.query.filter_by(id=drinker_id).one_or_none()
         if not drinker:
-            return flask.jsonify({"result": False, "message": "飲む人の指定にあやまりがあります"})
+            return flask.jsonify({
+                "result": False,
+                "message": "飲む人の指定にあやまりがあります"
+            })
         new_coffee.drinkers.append(drinker)
     db.session.commit()
     return flask.jsonify({
@@ -110,4 +119,6 @@ def create_coffee():
         "message": "コーヒーを作成しました。",
         "data": new_coffee.to_json(True)
     })
+
+
 # TODO:ページネーション

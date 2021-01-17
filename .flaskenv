@@ -1,1 +1,1 @@
-FLASK_APP=main/models.py
+FLASK_APP=src/app.py
