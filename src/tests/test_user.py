@@ -1,5 +1,7 @@
 import json
 
+from flask_jwt_extended.utils import create_access_token
+
 from src.tests.base import BaseTestCase
 from src.app import WATCH_WORD
 
@@ -155,3 +157,36 @@ class TestUser(BaseTestCase):
             assert data["result"] is False
             assert data["message"] == case["expect_response_data"]["message"]
             assert "token" not in data
+
+    def test_ログインなしでユーザー情報は見れない(self):
+        response = self.app.get("users/1")
+        assert response.status_code == 401
+
+    def test_ログインなしでユーザー検索はできない(self):
+        response = self.app.get("users", query_string={"name": "テストユーザー1"})
+        assert response.status_code == 401
+
+    def test_ログインすればユーザー情報が見れる(self):
+        user1, _ = self.addSampleUser()
+        token: str = create_access_token(user1)
+        response = self.app.get(
+            "users/2",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == 200
+        data = json.loads(response.get_data())
+        assert data["result"] is True
+        assert data["data"]["name"] == "テストユーザー2"
+
+    def test_ログインすればユーザー検索ができる(self):
+        user1, _ = self.addSampleUser()
+        token: str = create_access_token(user1)
+        response = self.app.get(
+            "users",
+            query_string={"name": "テストユーザー1"},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == 200
+        data = json.loads(response.get_data())
+        assert data["result"] is True
+        assert data["data"][0]["name"] == "テストユーザー1"

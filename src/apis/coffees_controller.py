@@ -23,13 +23,7 @@ def get_coffees():
     current_user: User = User.query.filter_by(
         name=get_jwt_identity()).one_or_none()
     if dripper_id is not None:
-        if current_user and dripper_id is current_user.id:
-            sql_query.append(Coffee.dripper_id == dripper_id)
-        else:
-            return flask.jsonify({
-                "result": False,
-                "message": "ログインしてください"
-            }), 401
+        sql_query.append(Coffee.dripper_id == dripper_id)
     if drinker_id is not None:
         if current_user and drinker_id is current_user.id:
             if has_review == "true":
@@ -58,10 +52,15 @@ def get_coffees():
 @jwt_optional
 def get_coffee(id: int):
     coffee: Coffee = Coffee.query.get(id)
-    return flask.jsonify({
-        "result": True,
-        "data": coffee.to_json(with_user=get_jwt_identity())
-    })
+    if coffee:
+        return flask.jsonify({
+            "result":
+            True,
+            "data":
+            coffee.to_json(with_user=get_jwt_identity())
+        })
+    else:
+        return flask.jsonify({"result": False, "message": "コーヒーが存在しません"}), 404
 
 
 @app.route("/coffees", methods=['POST'])
