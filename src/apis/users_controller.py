@@ -143,8 +143,14 @@ def get_users():
 @jwt_required
 def get_user(id: int):
     user: User = User.query.get(id)
-    return flask.jsonify({
-        "result": True,
-        "message": None,
-        "data": user.to_json()
-    })
+    if user:
+        return flask.jsonify({
+            "result": True,
+            "message": None,
+            "data": user.to_json()
+        })
+    else:
+        return flask.jsonify({
+            "result": False,
+            "message": "ユーザーが存在しません",
+        }), 404

@@ -52,10 +52,15 @@ def get_coffees():
 @jwt_optional
 def get_coffee(id: int):
     coffee: Coffee = Coffee.query.get(id)
-    return flask.jsonify({
-        "result": True,
-        "data": coffee.to_json(with_user=get_jwt_identity())
-    })
+    if coffee:
+        return flask.jsonify({
+            "result":
+            True,
+            "data":
+            coffee.to_json(with_user=get_jwt_identity())
+        })
+    else:
+        return flask.jsonify({"result": False, "message": "コーヒーが存在しません"}), 404
 
 
 @app.route("/coffees", methods=['POST'])
