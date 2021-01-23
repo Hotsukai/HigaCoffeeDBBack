@@ -137,3 +137,14 @@ def get_users():
     for user in users:
         data.append({"name": user.name, "id": user.id})
     return flask.jsonify({"result": True, "message": None, "data": data})
+
+
+@app.route("/users/<int:id>", methods=['GET'])
+@jwt_required
+def get_user(id: int):
+    user: User = User.query.get(id)
+    return flask.jsonify({
+        "result": True,
+        "message": None,
+        "data": user.to_json()
+    })
