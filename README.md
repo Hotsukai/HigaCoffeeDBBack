@@ -49,6 +49,7 @@ HigaCoffee ではコーヒーを題材にフロント開発・バックエンド
       $ flask db upgrade
       ```
 
+1. [.env.sample](/.env.sample)を参考に.env ファイルを作成。
 1. ローカルサーバ立ち上げ  
    `$ python run.py`
 
