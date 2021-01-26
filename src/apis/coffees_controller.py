@@ -44,10 +44,10 @@ def get_coffees():
         sql_query.append(Coffee.bean_id == bean_id)
     coffees: List[Coffee] = Coffee.query.filter(db.and_(*sql_query)).order_by(
         db.desc(Coffee.created_at)).limit(10).offset(offset).all()
-    coffee_id_exist_more: Union[Coffee, None] = Coffee.query.filter(
+    coffee_exist_more: Union[Coffee, None] = Coffee.query.filter(
         db.and_(*sql_query)).order_by(db.desc(
             Coffee.created_at)).limit(1).offset(offset + 10).one_or_none()
-    exist_more: bool = coffee_id_exist_more is not None
+    exist_more: bool = coffee_exist_more is not None
     return flask.jsonify({
         "result":
         True,
