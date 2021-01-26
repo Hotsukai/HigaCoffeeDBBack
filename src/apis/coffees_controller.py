@@ -20,8 +20,11 @@ def get_coffees():
     drinker_id: Union[int, None] = flask.request.args.get('drinker_id',
                                                           type=int)
     bean_id: Union[int, None] = flask.request.args.get('bean_id', type=int)
+    offset: Union[int, None] = flask.request.args.get('offset', type=int)
     current_user: User = User.query.filter_by(
         name=get_jwt_identity()).one_or_none()
+    if offset is None:
+        offset = 0
     if dripper_id is not None:
         sql_query.append(Coffee.dripper_id == dripper_id)
     if drinker_id is not None:
@@ -40,11 +43,17 @@ def get_coffees():
     if bean_id is not None:
         sql_query.append(Coffee.bean_id == bean_id)
     coffees: List[Coffee] = Coffee.query.filter(db.and_(*sql_query)).order_by(
-        db.desc(Coffee.created_at)).limit(50).all()
+        db.desc(Coffee.created_at)).limit(10).offset(offset).all()
+    coffee_id_exist_more: Union[Coffee, None] = Coffee.query.filter(
+        db.and_(*sql_query)).order_by(db.desc(
+            Coffee.created_at)).limit(1).offset(offset + 10).one_or_none()
+    exist_more: bool = coffee_id_exist_more is not None
     return flask.jsonify({
         "result":
         True,
-        "data": [coffee.to_json(with_user=True) for coffee in coffees]
+        "data": [coffee.to_json(with_user=True) for coffee in coffees],
+        "existMore":
+        exist_more
     })
 
 
