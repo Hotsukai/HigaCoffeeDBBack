@@ -95,7 +95,7 @@ def create_coffee():
             water_amount <= 0 or water_amount > 500 or\
             water_temperature is not None and\
             (water_temperature > 100 or water_temperature < 0):
-        return flask.jsonify({"result": False, "message": "入力が不正です"})
+        return flask.jsonify({"result": False, "message": "入力が不正です"}), 400
     new_coffee = Coffee(bean_id=bean_id,
                         dripper_id=dripper_id,
                         extraction_time=extraction_time,
@@ -112,14 +112,14 @@ def create_coffee():
             drinkers.append(int(id))
     drinkers = list(set(drinkers))
     if len(drinkers) == 0:
-        return flask.jsonify({"result": False, "message": "飲む人を指定してください"})
+        return flask.jsonify({"result": False, "message": "飲む人を指定してください"}), 400
     for drinker_id in drinkers:
         drinker = User.query.filter_by(id=drinker_id).one_or_none()
         if not drinker:
             return flask.jsonify({
                 "result": False,
                 "message": "飲む人の指定にあやまりがあります"
-            })
+            }), 400
         new_coffee.drinkers.append(drinker)
     db.session.commit()
     return flask.jsonify({
