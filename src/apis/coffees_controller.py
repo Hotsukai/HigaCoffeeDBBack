@@ -85,7 +85,7 @@ def create_coffee():
             powder_amount > 20 or powder_amount <= 0 or \
             water_amount <= 0 or water_amount > 500 or\
             water_temperature is not None and\
-            (water_temperature > 100 or water_temperature < 0):
+            (water_temperature > 100 or water_temperature < 60):
         return flask.jsonify({"result": False, "message": "入力が不正です"})
     new_coffee = Coffee(bean_id=bean_id,
                         dripper_id=dripper_id,
