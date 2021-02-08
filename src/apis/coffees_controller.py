@@ -20,8 +20,11 @@ def get_coffees():
     drinker_id: Union[int, None] = flask.request.args.get('drinker_id',
                                                           type=int)
     bean_id: Union[int, None] = flask.request.args.get('bean_id', type=int)
+    offset: Union[int, None] = flask.request.args.get('offset', type=int)
     current_user: User = User.query.filter_by(
         name=get_jwt_identity()).one_or_none()
+    if offset is None:
+        offset = 0
     if dripper_id is not None:
         sql_query.append(Coffee.dripper_id == dripper_id)
     if drinker_id is not None:
@@ -40,11 +43,17 @@ def get_coffees():
     if bean_id is not None:
         sql_query.append(Coffee.bean_id == bean_id)
     coffees: List[Coffee] = Coffee.query.filter(db.and_(*sql_query)).order_by(
-        db.desc(Coffee.created_at)).limit(50).all()
+        db.desc(Coffee.created_at)).limit(10).offset(offset).all()
+    coffee_exist_more: Union[Coffee, None] = Coffee.query.filter(
+        db.and_(*sql_query)).order_by(db.desc(
+            Coffee.created_at)).limit(1).offset(offset + 10).one_or_none()
+    exist_more: bool = coffee_exist_more is not None
     return flask.jsonify({
         "result":
         True,
-        "data": [coffee.to_json(with_user=True) for coffee in coffees]
+        "data": [coffee.to_json(with_user=True) for coffee in coffees],
+        "existMore":
+        exist_more
     })
 
 
@@ -86,7 +95,7 @@ def create_coffee():
             water_amount <= 0 or water_amount > 500 or\
             water_temperature is not None and\
             (water_temperature > 100 or water_temperature < 0):
-        return flask.jsonify({"result": False, "message": "入力が不正です"})
+        return flask.jsonify({"result": False, "message": "入力が不正です"}), 400
     new_coffee = Coffee(bean_id=bean_id,
                         dripper_id=dripper_id,
                         extraction_time=extraction_time,
@@ -103,14 +112,14 @@ def create_coffee():
             drinkers.append(int(id))
     drinkers = list(set(drinkers))
     if len(drinkers) == 0:
-        return flask.jsonify({"result": False, "message": "飲む人を指定してください"})
+        return flask.jsonify({"result": False, "message": "飲む人を指定してください"}), 400
     for drinker_id in drinkers:
         drinker = User.query.filter_by(id=drinker_id).one_or_none()
         if not drinker:
             return flask.jsonify({
                 "result": False,
                 "message": "飲む人の指定にあやまりがあります"
-            })
+            }), 400
         new_coffee.drinkers.append(drinker)
     db.session.commit()
     return flask.jsonify({
