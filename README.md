@@ -19,11 +19,14 @@ HigaCoffee ではコーヒーを題材にフロント開発・バックエンド
 
 ## 実行方法
 
-1. 仮想環境作成・有効化  
-   `$ python -m venv venv `  
+1. 仮想環境作成
+   `$ python -m venv venv `
+1. 仮想環境有効化
    `$ source venv/bin/activate`
-1. パッケージインストール  
+1. パッケージインストール(requirements.txt から)  
    `$ pip install -r requirements.txt `
+1. インストール済みのパッケージを requirements.txt に記載
+   `pip freeze > requirements.txt`
 1. DB 作成
    1. データベースを作成し、URI を環境変数`DATABASE_URI`に保存  
       ※ デフォルトでは higa という PostgreSQL の DB が使われる。この場合 PostgreSQL に higa という DB を作成する必要がある。
@@ -46,6 +49,7 @@ HigaCoffee ではコーヒーを題材にフロント開発・バックエンド
       $ flask db upgrade
       ```
 
+1. [.env.sample](/.env.sample)を参考に.env ファイルを作成。
 1. ローカルサーバ立ち上げ  
    `$ python run.py`
 
@@ -61,4 +65,4 @@ HigaCoffee ではコーヒーを題材にフロント開発・バックエンド
    ```
 
    `test_*.py`がすべて実行される。  
-   ※[base.py](./src/tests/base.py)に記載の処理がtestメソッドのたびに行われる。
+   ※[base.py](./src/tests/base.py)に記載の処理が test メソッドのたびに行われる。
