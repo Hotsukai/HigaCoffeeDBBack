@@ -1,4 +1,6 @@
+from datetime import datetime
 from typing import List, Union
+from pytz import timezone
 
 import flask
 from flask_jwt_extended import (jwt_required, get_jwt_identity, jwt_optional)
@@ -86,6 +88,12 @@ def update_review(id):
             return flask.jsonify({
                 "result": False,
                 "message": "このコーヒーへのレビューを書く権利がありません"
+            }), 400
+        if (datetime.now(timezone('UTC')) -
+                review.created_at).total_seconds() > 30 * 60:
+            return flask.jsonify({
+                "result": False,
+                "message": "レビューの編集は作成から30分のみできます。"
             }), 400
         review.bitterness = bitterness
         review.feeling = feeling
