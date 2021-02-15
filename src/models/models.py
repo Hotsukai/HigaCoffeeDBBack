@@ -65,6 +65,10 @@ class Coffee(db.Model):
             "powderAmount":
             self.powder_amount,
             "reviewId": [review.id for review in self.reviews],
+            "reviews": [
+                review.to_json(with_user=with_user, with_coffee=False)
+                for review in self.reviews
+            ],
             "waterAmount":
             self.water_amount,
             "waterTemperature":
@@ -130,11 +134,12 @@ class Review(db.Model):
     def __repr__(self):
         return "Review(id={}, feeling{})".format(self.id, self.feeling)
 
-    def to_json(self, with_user=False):
+    def to_json(self, with_user=False, with_coffee=True):
         return {
             "id": self.id,
             "bitterness": self.bitterness,
-            "coffee": self.coffee.to_json(with_user=with_user),
+            "coffee":
+            self.coffee.to_json(with_user=with_user) if with_coffee else None,
             "feeling": self.feeling,
             "reviewer": self.reviewer.to_json() if with_user else None,
             "situation": self.situation,
