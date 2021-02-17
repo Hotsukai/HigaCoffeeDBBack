@@ -62,6 +62,54 @@ def create_user():
 
 # TODO:エラーハンドリング
 
+# ユーザー名変更
+@app.route('/auth/changeUsername', methods=['POST'])
+def change_username():
+    form_data = flask.request.json
+    current_username: str = form_data.get('currentUsername')
+    new_username: str = form_data.get('newUsername')
+    password: str = form_data.get('password')
+    if not new_username:
+        return flask.jsonify({"result": False, "message": "新しいユーザー名は必須です"}), 400
+    if len(new_username) > 30:
+        return flask.jsonify({"result": False, "message": "ユーザー名が長すぎます"}), 400
+    if not password:
+        return flask.jsonify({"result": False, "message": "パスワードを入力してください"}), 400
+    if User.query.filter_by(name=new_username).one_or_none():
+        return flask.jsonify({
+            "result": False,
+            "message": "新しいユーザー名は既に利用されています"
+        }), 409
+
+    user: User = User.query.filter_by(name=current_username).one_or_none()
+    # 現在のユーザー名で登録されているかの確認
+    if user is None:
+        return flask.jsonify({
+            "result": False,
+            "message": "ユーザー(" + current_username + ")は登録されていません"
+        }), 401
+
+    if bcrypt.check_password_hash(user.encrypted_password, password):
+        # 新しいユーザー名に更新してアクセストークンを作成
+        user.name = new_username
+        access_token: str = create_access_token(identity=user)
+
+        # dbを更新
+        db.session.merge(user)
+        db.session.commit()
+
+        return flask.jsonify({
+            "result": True,
+            "message": "ユーザー名を" + current_username + "から" + new_username + "に変更しました",
+            "data": user.to_json(),
+            'token': access_token
+        })
+    else:
+        return flask.jsonify({
+            "result": False,
+            "message": "ユーザー(" + current_username + ")のパスワードが間違っています"
+        }), 401
+
 
 @app.route('/auth/login', methods=['POST'])
 def login():
