@@ -4,15 +4,18 @@ from flask_jwt_extended.utils import create_access_token
 
 from src.tests.base import BaseTestCase
 from src.app import WATCH_WORD
+from src.models.models import User
 from .test_utils import add_sample_users
 
 
 class TestUser(BaseTestCase):
     def test_ログインできる(self):
-        add_sample_users()
+        user1: User
+        user1, _ = add_sample_users()
+
         response = self.app.post("auth/login",
                                  data=json.dumps({
-                                     "username": "テストユーザー1",
+                                     "username": user1.name,
                                      "password": "password"
                                  }),
                                  content_type='application/json')
@@ -162,6 +165,11 @@ class TestUser(BaseTestCase):
     def test_ログインなしでユーザー情報は見れない(self):
         response = self.app.get("users/1")
         assert response.status_code == 401
+        assert json.loads(response.get_data()) == {
+            "result": False,
+            "message": "ログインが必要です",
+            "data": {}
+        }
 
     def test_ログインなしでユーザー検索はできない(self):
         response = self.app.get("users", query_string={"name": "テストユーザー1"})
