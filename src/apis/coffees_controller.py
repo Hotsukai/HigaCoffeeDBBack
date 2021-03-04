@@ -127,6 +127,3 @@ def create_coffee():
         "message": "コーヒーを作成しました。",
         "data": new_coffee.to_json(True)
     })
-
-
-# TODO:ページネーション

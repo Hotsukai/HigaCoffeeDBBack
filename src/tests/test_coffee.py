@@ -221,7 +221,7 @@ class TestCoffee(BaseTestCase):
 
     def test_コーヒーは一度に10件取得できる(self):
         user1, user2 = add_sample_users()
-        for i in range(20):
+        for _ in range(20):
             coffee = Coffee(bean_id=1,
                             dripper_id=user1.id,
                             drinkers=[user1, user2],
@@ -242,7 +242,7 @@ class TestCoffee(BaseTestCase):
         )
         self.assert_200(response)
         res_data: Dict = flask_json.loads(response.get_data())
-        # datetimeをStringにするためにPythonDict -> String -> 
+        # datetimeをStringにするためにPythonDict -> String -> PythonDictにしている
         want_data: Dict = flask_json.loads(
             flask_json.dumps({
                 'data': [
@@ -273,3 +273,94 @@ class TestCoffee(BaseTestCase):
                 False
             }))
         assert want_data == res_data
+
+    def test_コーヒーをしぼりこんで取得できる(self):
+        user1, user2 = add_sample_users()
+        coffees = []
+        coffees += [
+            Coffee(bean_id=1,
+                   dripper_id=user1.id,
+                   drinkers=[user1],
+                   extraction_time=4,
+                   extraction_method_id=1,
+                   mesh_id=None,
+                   memo="memo",
+                   powder_amount=10,
+                   water_amount=120,
+                   water_temperature=90),
+            Coffee(
+                bean_id=2,
+                dripper_id=user2.id,
+                drinkers=[user1, user2],
+                extraction_time=4,
+                extraction_method_id=1,
+                mesh_id=None,
+                memo="memo",
+                powder_amount=10,
+                water_amount=120,
+                water_temperature=90,
+            )
+        ]
+        db.session.add_all(coffees)
+        db.session.commit()
+        token: str = create_access_token(user1)
+        response = self.app.get("coffees",
+                                headers={"Authorization": f"Bearer {token}"},
+                                query_string={"dripper_id": 1})
+        self.assert_200(response)
+        res_data: Dict = flask_json.loads(response.get_data())
+        want_data: Dict = flask_json.loads(
+            flask_json.dumps({
+                'data': [coffees[0].to_json(with_user=True)],
+                'result': True,
+                "existMore": False
+            }))
+        assert want_data == res_data
+
+        response = self.app.get("coffees",
+                                headers={"Authorization": f"Bearer {token}"},
+                                query_string={"drinker_id": 1})
+        self.assert_200(response)
+        res_data: Dict = flask_json.loads(response.get_data())
+        want_data: Dict = flask_json.loads(
+            flask_json.dumps({
+                'data': [coffee.to_json(with_user=True) for coffee in coffees],
+                'result':
+                True,
+                "existMore":
+                False
+            }))
+        assert want_data == res_data
+
+        response = self.app.get("coffees",
+                                headers={"Authorization": f"Bearer {token}"},
+                                query_string={
+                                    "drpper_id": 1,
+                                    "bean_id": 1
+                                })
+        self.assert_200(response)
+        res_data: Dict = flask_json.loads(response.get_data())
+        want_data: Dict = flask_json.loads(
+            flask_json.dumps({
+                'data': [coffees[0].to_json(with_user=True)],
+                'result': True,
+                "existMore": False
+            }))
+        assert want_data == res_data
+
+        response = self.app.get("coffees",
+                                headers={"Authorization": f"Bearer {token}"},
+                                query_string={
+                                    "dripper_id": 1,
+                                    "bean_id": 2
+                                })
+        self.assert_200(response)
+        res_data: Dict = flask_json.loads(response.get_data())
+        want_data: Dict = flask_json.loads(
+            flask_json.dumps({
+                'data': [],
+                'result': True,
+                "existMore": False
+            }))
+        assert want_data == res_data
+# TODO: hasreview検索
