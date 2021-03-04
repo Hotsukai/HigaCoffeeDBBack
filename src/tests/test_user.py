@@ -4,26 +4,39 @@ from flask_jwt_extended.utils import create_access_token
 
 from src.tests.base import BaseTestCase
 from src.app import WATCH_WORD
+from src.models.models import User
+from .test_utils import add_sample_users, format_datetime_to_json_str
 
 
 class TestUser(BaseTestCase):
     def test_ログインできる(self):
-        self.addSampleUser()
+        user1: User
+        user1, _ = add_sample_users()
+
         response = self.app.post("auth/login",
                                  data=json.dumps({
-                                     "username": "テストユーザー1",
+                                     "username": user1.name,
                                      "password": "password"
                                  }),
                                  content_type='application/json')
 
         self.assert200(response)
         data = json.loads(response.get_data())
-        assert data["result"] is True
-        assert "token" in data
-        assert data["data"]["name"] != ""
+        assert data == {
+            'data': {
+                'created_at': format_datetime_to_json_str(user1.created_at),
+                'id': user1.id,
+                'name': user1.name,
+                'profile': user1.profile,
+                'updated_at': format_datetime_to_json_str(user1.updated_at)
+            },
+            'message': f'ユーザー({user1.name})のログインに成功しました。',
+            'result': True,
+            'token': data["token"]
+        }
 
     def test_不正なリクエストではログインできない(self):
-        self.addSampleUser()
+        add_sample_users()
         cases = [{
             "form_data": {
                 "username": "テストユーザー3",
@@ -65,10 +78,10 @@ class TestUser(BaseTestCase):
                                      content_type='application/json')
             assert response.status_code == case["expect_response_data"][
                 "status_code"]
-            data = json.loads(response.get_data())
-            assert data["result"] is False
-            assert data["message"] == case["expect_response_data"]["message"]
-            assert "token" not in data
+            assert json.loads(response.get_data()) == {
+                "result": False,
+                "message": case["expect_response_data"]["message"]
+            }
 
     def test_新規登録できる(self):
         response = self.app.post("auth/create_user",
@@ -79,15 +92,23 @@ class TestUser(BaseTestCase):
                                  }),
                                  content_type='application/json')
         assert response.status_code == 201
+        user: User = User.query.get(1)
         data = json.loads(response.get_data())
-        assert data["result"] is True
-        assert data["message"] == "ユーザー(テストユーザー1)を作成しました。"
-        assert "token" in data
-        assert data["data"]["name"] == "テストユーザー1"
-        assert data["data"]["id"] == 1
+        assert data == {
+            'data': {
+                'created_at': format_datetime_to_json_str(user.created_at),
+                'id': user.id,
+                'name': user.name,
+                'profile': user.profile,
+                'updated_at': format_datetime_to_json_str(user.updated_at)
+            },
+            'message': f'ユーザー({user.name})を作成しました。',
+            'result': True,
+            'token': data["token"]
+        }
 
     def test_不正なリクエストでは新規登録できない(self):
-        self.addSampleUser()
+        add_sample_users()
         cases = [{
             "form_data": {
                 "username": "テストユーザー3",
@@ -154,20 +175,36 @@ class TestUser(BaseTestCase):
             assert response.status_code == case["expect_response_data"][
                 "status_code"]
             data = json.loads(response.get_data())
-            assert data["result"] is False
-            assert data["message"] == case["expect_response_data"]["message"]
-            assert "token" not in data
+            assert data == {
+                "result": False,
+                "message": case["expect_response_data"]["message"]
+            }
 
     def test_ログインなしでユーザー情報は見れない(self):
         response = self.app.get("users/1")
         assert response.status_code == 401
+        assert json.loads(response.get_data()) == {
+            "result": False,
+            "message": "ログインが必要です",
+            "data": {}
+        }
+        assert json.loads(response.get_data()) == {
+            "result": False,
+            "message": "ログインが必要です",
+            "data": {}
+        }
 
     def test_ログインなしでユーザー検索はできない(self):
         response = self.app.get("users", query_string={"name": "テストユーザー1"})
         assert response.status_code == 401
+        assert json.loads(response.get_data()) == {
+            "result": False,
+            "message": "ログインが必要です",
+            "data": {}
+        }
 
     def test_ログインすればユーザー情報が見れる(self):
-        user1, _ = self.addSampleUser()
+        user1, user2 = add_sample_users()
         token: str = create_access_token(user1)
         response = self.app.get(
             "users/2",
@@ -175,11 +212,20 @@ class TestUser(BaseTestCase):
         )
         assert response.status_code == 200
         data = json.loads(response.get_data())
-        assert data["result"] is True
-        assert data["data"]["name"] == "テストユーザー2"
+        assert data == {
+            'data': {
+                'created_at': format_datetime_to_json_str(user2.created_at),
+                'id': user2.id,
+                'name': user2.name,
+                'profile': user2.profile,
+                'updated_at': format_datetime_to_json_str(user2.updated_at),
+            },
+            'message': None,
+            'result': True
+        }
 
     def test_ログインすればユーザー検索ができる(self):
-        user1, _ = self.addSampleUser()
+        user1, _ = add_sample_users()
         token: str = create_access_token(user1)
         response = self.app.get(
             "users",
@@ -187,6 +233,11 @@ class TestUser(BaseTestCase):
             headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200
-        data = json.loads(response.get_data())
-        assert data["result"] is True
-        assert data["data"][0]["name"] == "テストユーザー1"
+        assert json.loads(response.get_data()) == {
+            'data': [{
+                'id': 1,
+                'name': 'テストユーザー1'
+            }],
+            'message': None,
+            'result': True
+        }

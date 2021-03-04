@@ -40,12 +40,12 @@ HigaCoffee ではコーヒーを題材にフロント開発・バックエンド
       ```
    1. マイグレーションファイル作成  
       「DB 構造をこう変えてくださいね」っていう[ファイル](./migrations/versions)ができる(=マイグレーションファイル)
-      ```
+      ```sh
       $ flask db migrate
       ```
    1. マイグレーション実行  
       マイグレーションファイルに基づいて DB 構造が変更される。
-      ```
+      ```sh
       $ flask db upgrade
       ```
 
@@ -60,8 +60,18 @@ HigaCoffee ではコーヒーを題材にフロント開発・バックエンド
    ※ デフォルトでは higa_test という PostgreSQL の DB が使われる。この場合 PostgreSQL に higa_test という DB を作成する必要がある。
 1. テスト実行
 
-   ```
+   ```sh
+   # 通常実行
    $ pytest
+
+   # ログありで実行
+   $ pytest -v
+   
+   # 詳細なログありで実行
+   $ pytest -vv
+
+   # PASSしたテストもprintを出力
+   $ pytest --capture=no
    ```
 
    `test_*.py`がすべて実行される。  
