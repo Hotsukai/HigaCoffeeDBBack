@@ -9,7 +9,7 @@ from .test_utils import add_sample_users, format_datetime_to_json_str
 
 
 class TestCoffee(BaseTestCase):
-    def test_ログインなしで追加できない(self):
+    def test_ログインなしで登録できない(self):
         postParams = {}
         response = self.app.post("coffees",
                                  data=json.dumps(postParams),
@@ -79,21 +79,21 @@ class TestCoffee(BaseTestCase):
                 'extractionMethod':
                 EXTRACTION_METHOD[1],
                 'extractionTime':
-                8,
+                coffee.extraction_time,
                 'id':
-                1,
+                coffee.id,
                 'memo':
-                '',
+                coffee.memo,
                 'mesh':
-                None,
+                coffee.mesh_id,
                 'powderAmount':
-                8.7,
+                coffee.powder_amount,
                 'reviewId': [],
                 'reviews': [],
                 'waterAmount':
-                98,
+                coffee.water_amount,
                 'waterTemperature':
-                3
+                coffee.water_temperature
             },
             'message': 'コーヒーを作成しました。',
             'result': True
@@ -101,17 +101,17 @@ class TestCoffee(BaseTestCase):
 
     def test_ログイン無しでコーヒーを1件取得できる(self):
         user1, user2 = add_sample_users()
-        coffee1 = Coffee(bean_id=1,
-                         dripper_id=user1.id,
-                         extraction_time=4,
-                         extraction_method_id=1,
-                         mesh_id=None,
-                         memo="memo",
-                         powder_amount=10,
-                         water_amount=120,
-                         water_temperature=90)
-        coffee1.drinkers.append(user2)
-        db.session.add(coffee1)
+        coffee = Coffee(bean_id=1,
+                        dripper_id=user1.id,
+                        extraction_time=4,
+                        extraction_method_id=1,
+                        mesh_id=None,
+                        memo="memo",
+                        powder_amount=10,
+                        water_amount=120,
+                        water_temperature=90)
+        coffee.drinkers.append(user2)
+        db.session.add(coffee)
         db.session.commit()
 
         response = self.app.get("/coffees/1")
@@ -119,35 +119,103 @@ class TestCoffee(BaseTestCase):
         data_dict = json.loads(response.get_data())
         assert data_dict == {
             'data': {
-                'bean': {
-                    'detail': 'ビター 421',
-                    'fullName': 'ブラジル深煎り',
-                    'id': 1,
-                    'origin': {
-                        'id': 1,
-                        'name': 'ブラジル'
-                    },
-                    'roast': {
-                        'id': 1,
-                        'name': '深煎り'
-                    }
-                },
-                'createdAt': format_datetime_to_json_str(coffee1.created_at),
+                'bean': BEANS[0].to_json(),
+                'createdAt': format_datetime_to_json_str(coffee.created_at),
                 'drinkers': None,
                 'dripper': None,
-                'extractionMethod': {
-                    'id': 1,
-                    'name': 'フレンチプレス'
-                },
-                'extractionTime': 4,
-                'id': 1,
-                'memo': 'memo',
-                'mesh': None,
-                'powderAmount': 10.0,
+                'extractionMethod': EXTRACTION_METHOD[1],
+                'extractionTime': coffee.extraction_time,
+                'id': coffee.id,
+                'memo': coffee.memo,
+                'mesh': coffee.mesh_id,
+                'powderAmount': coffee.powder_amount,
                 'reviewId': [],
                 'reviews': [],
-                'waterAmount': 120,
-                'waterTemperature': 90
+                'waterAmount': coffee.water_amount,
+                'waterTemperature': coffee.water_temperature
+            },
+            'result': True
+        }
+
+    def test_ログイン時ユーザー情報ありでコーヒーを1件取得できる(self):
+        user1, user2 = add_sample_users()
+        coffee = Coffee(bean_id=1,
+                        dripper_id=user1.id,
+                        drinkers=[user1, user2],
+                        extraction_time=4,
+                        extraction_method_id=1,
+                        mesh_id=None,
+                        memo="memo",
+                        powder_amount=10,
+                        water_amount=120,
+                        water_temperature=90)
+        coffee.drinkers.append(user2)
+        db.session.add(coffee)
+        db.session.commit()
+        token: str = create_access_token(user1)
+
+        response = self.app.get(
+            "coffees/1",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        self.assert_200(response)
+        data_dict = json.loads(response.get_data())
+        print(data_dict)
+        assert data_dict == {
+            'data': {
+                "bean":
+                BEANS[0].to_json(),
+                'createdAt':
+                format_datetime_to_json_str(coffee.created_at),
+                'drinkers': [{
+                    'created_at':
+                    format_datetime_to_json_str(user1.created_at),
+                    'id':
+                    user1.id,
+                    'name':
+                    user1.name,
+                    'profile':
+                    user1.profile,
+                    'updated_at':
+                    format_datetime_to_json_str(user1.updated_at)
+                }, {
+                    'created_at':
+                    format_datetime_to_json_str(user2.created_at),
+                    'id':
+                    user2.id,
+                    'name':
+                    user2.name,
+                    'profile':
+                    user2.profile,
+                    'updated_at':
+                    format_datetime_to_json_str(user2.updated_at)
+                }],
+                'dripper': {
+                    'created_at':
+                    format_datetime_to_json_str(user1.created_at),
+                    'id': user1.id,
+                    'name': user1.name,
+                    'profile': user1.profile,
+                    'updated_at': format_datetime_to_json_str(user1.updated_at)
+                },
+                'extractionMethod':
+                EXTRACTION_METHOD[1],
+                'extractionTime':
+                coffee.extraction_time,
+                'id':
+                coffee.id,
+                'memo':
+                coffee.memo,
+                'mesh':
+                coffee.mesh_id,
+                'powderAmount':
+                coffee.powder_amount,
+                'reviewId': [],
+                'reviews': [],
+                'waterAmount':
+                coffee.water_amount,
+                'waterTemperature':
+                coffee.water_temperature
             },
             'result': True
         }
