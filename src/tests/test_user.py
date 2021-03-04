@@ -4,11 +4,12 @@ from flask_jwt_extended.utils import create_access_token
 
 from src.tests.base import BaseTestCase
 from src.app import WATCH_WORD
+from .test_utils import add_sample_users
 
 
 class TestUser(BaseTestCase):
     def test_ログインできる(self):
-        self.addSampleUser()
+        add_sample_users()
         response = self.app.post("auth/login",
                                  data=json.dumps({
                                      "username": "テストユーザー1",
@@ -23,7 +24,7 @@ class TestUser(BaseTestCase):
         assert data["data"]["name"] != ""
 
     def test_不正なリクエストではログインできない(self):
-        self.addSampleUser()
+        add_sample_users()
         cases = [{
             "form_data": {
                 "username": "テストユーザー3",
@@ -87,7 +88,7 @@ class TestUser(BaseTestCase):
         assert data["data"]["id"] == 1
 
     def test_不正なリクエストでは新規登録できない(self):
-        self.addSampleUser()
+        add_sample_users()
         cases = [{
             "form_data": {
                 "username": "テストユーザー3",
@@ -167,7 +168,7 @@ class TestUser(BaseTestCase):
         assert response.status_code == 401
 
     def test_ログインすればユーザー情報が見れる(self):
-        user1, _ = self.addSampleUser()
+        user1, _ = add_sample_users()
         token: str = create_access_token(user1)
         response = self.app.get(
             "users/2",
@@ -179,7 +180,7 @@ class TestUser(BaseTestCase):
         assert data["data"]["name"] == "テストユーザー2"
 
     def test_ログインすればユーザー検索ができる(self):
-        user1, _ = self.addSampleUser()
+        user1, _ = add_sample_users()
         token: str = create_access_token(user1)
         response = self.app.get(
             "users",
