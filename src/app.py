@@ -33,7 +33,7 @@ from src.apis import (controller, users_controller,
                       data_controller)
 
 app.register_blueprint(controller.app)
-app.register_blueprint(users_controller.app)
 app.register_blueprint(coffees_controller.app)
+app.register_blueprint(users_controller.app)
 app.register_blueprint(reviews_controller.app)
 app.register_blueprint(data_controller.app)

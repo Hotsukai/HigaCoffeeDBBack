@@ -2,7 +2,7 @@ from typing import List
 
 import flask
 from flask_jwt_extended import (jwt_required, create_access_token,
-                                get_jwt_identity, jwt_optional)
+                                get_jwt_identity)
 
 from src.app import bcrypt, WATCH_WORD
 from src.database import db
@@ -158,7 +158,7 @@ def login():
 
 
 @app.route("/auth", methods=['GET'])
-@jwt_optional
+@jwt_required(optional=True)
 def auth():
     current_user: User = User.query.filter_by(name=get_jwt_identity())\
         .one_or_none()
@@ -177,7 +177,7 @@ def auth():
 
 
 @app.route("/users", methods=['GET'])
-@jwt_required
+@jwt_required()
 def get_users():
     name: str = flask.request.args.get('name', type=str)
     users = []
@@ -193,7 +193,7 @@ def get_users():
 
 
 @app.route("/users/<int:id>", methods=['GET'])
-@jwt_required
+@jwt_required()
 def get_user(id: int):
     user: User = User.query.get(id)
     if user:
@@ -207,3 +207,7 @@ def get_user(id: int):
             "result": False,
             "message": "ユーザーが存在しません",
         }), 404
+
+
+if __name__ == "__main__":
+    pass

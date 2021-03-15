@@ -3,7 +3,7 @@ from typing import List, Union
 from pytz import timezone
 
 import flask
-from flask_jwt_extended import (jwt_required, get_jwt_identity, jwt_optional)
+from flask_jwt_extended import (jwt_required, get_jwt_identity)
 
 from src.database import db
 from src.models.models import Coffee, User, Review
@@ -12,7 +12,7 @@ app = flask.Blueprint('reviews_controller', __name__)
 
 
 @app.route("/reviews", methods=['GET'])
-@jwt_optional
+@jwt_required(optional=True)
 def get_reviews():
     sql_query: List = []
     reviewer_id: Union[int, None] = flask.request.args.get('reviewer',
@@ -49,7 +49,7 @@ def get_reviews():
 
 
 @app.route("/reviews/<int:id>", methods=['GET'])
-@jwt_optional
+@jwt_required(optional=True)
 def get_review(id: int):
     review: Review = Review.query.get(id)
     return flask.jsonify({
@@ -59,7 +59,7 @@ def get_review(id: int):
 
 
 @app.route("/reviews/<int:id>", methods=['PUT'])
-@jwt_required
+@jwt_required()
 def update_review(id):
     current_user: User = User.query.filter_by(
         name=get_jwt_identity()).one_or_none()
@@ -117,7 +117,7 @@ def update_review(id):
 
 
 @app.route("/reviews", methods=['POST'])
-@jwt_required
+@jwt_required()
 def create_review():
     current_user = User.query.filter_by(name=get_jwt_identity()).one_or_none()
     try:

@@ -1,7 +1,7 @@
 from typing import Union, List
 
 import flask
-from flask_jwt_extended import (jwt_required, get_jwt_identity, jwt_optional)
+from flask_jwt_extended import (jwt_required, get_jwt_identity)
 
 from src.database import db
 from src.models.models import Coffee, User
@@ -10,7 +10,7 @@ app = flask.Blueprint('coffees_controller', __name__)
 
 
 @app.route("/coffees", methods=['GET'])
-@jwt_optional
+@jwt_required(optional=True)
 def get_coffees():
     sql_query = []
     has_review: Union[str, None] = flask.request.args.get('has_review',
@@ -58,7 +58,7 @@ def get_coffees():
 
 
 @app.route("/coffees/<int:id>", methods=['GET'])
-@jwt_optional
+@jwt_required(optional=True)
 def get_coffee(id: int):
     coffee: Coffee = Coffee.query.get(id)
     if coffee:
@@ -73,7 +73,7 @@ def get_coffee(id: int):
 
 
 @app.route("/coffees", methods=['POST'])
-@jwt_required
+@jwt_required()
 def create_coffee():
     form_data = flask.request.json
     current_user: User = User.query.filter_by(
